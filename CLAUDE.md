@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Documentation language
 
-All repository documentation — this file, `readme.md`, `changelog.md`, and everything under `doc/` — is written in **English**. Keep new or edited docs in English regardless of the conversation language. Code comments, log messages, and commit messages also stay in English. Chat with the user can be in whatever language they prefer.
+All repository documentation — this file and `README.md` — is written in **English**. Keep new or edited docs in English regardless of the conversation language. Code comments, log messages, and commit messages also stay in English. Chat with the user can be in whatever language they prefer.
 
 ## Build & Run
 
@@ -26,7 +26,7 @@ There is no test project and no linter configured. MSBuild in Visual Studio 2022
 
 ### Runtime configuration
 
-- `appsettings.json` — full settings, copied to output on build. All settings documented in `readme.md`.
+- `appsettings.json` — full settings, copied to output on build.
 - `appsettings.user.json` — persisted user runtime state (dock edge, size, auto-size). **Takes priority over command line.** Delete to reset.
 - `language.{code}.json` — UI translations. Resolution walks from less to more specific (`en` → `en-US`).
 - Language override from CLI uses `Language=cs` (no `AppSettings:` prefix — explicit exception in `App.xaml.cs` host configuration).
@@ -72,7 +72,7 @@ Every enumerated window (pre-filter) is also recorded in `MainViewModel.LastEnum
 
 ### Application User Model ID (AppId) resolution
 
-AppId is the grouping key and the handle for launching Store/UWP apps and retrieving JumpLists. Resolution order (see `readme.md` §Application User Model ID for the full rationale):
+AppId is the grouping key and the handle for launching Store/UWP apps and retrieving JumpLists. Resolution order:
 
 1. `IApplicationResolver.GetAppIDForWindow` (undocumented COM; gated by `FeatureFlags.UseApplicationResolver`).
 2. Window Property Store → `PKEY_AppUserModel_ID`.
