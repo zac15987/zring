@@ -57,10 +57,4 @@
 	  </Compile>
 	</ItemGroup>
 
-	<ItemGroup>
-	  <None Update="zring.png">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	</ItemGroup>
-
 </Project>
