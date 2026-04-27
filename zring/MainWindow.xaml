@@ -1,0 +1,572 @@
+<appBar:AppBarWindow
+    x:Class="Zring.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:appBar="clr-namespace:Zring.AppBar"
+    xmlns:dto="clr-namespace:Zring.Dto"
+    xmlns:ignore="http://dummy"
+    xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+    xmlns:wpfExt="clr-namespace:Zring.WpfExt"
+    xmlns:views="clr-namespace:Zring.Views"
+    mc:Ignorable="d ignore"
+    x:Name="Root"
+    Title="MainWindow"
+    Icon="/zring.ico"
+    Background="{ui:ThemeResource ApplicationBackgroundBrush}"
+    Foreground="{ui:ThemeResource TextFillColorPrimaryBrush}">
+    <appBar:AppBarWindow.DataContext>
+        <Binding Source="{StaticResource ViewModelLocator}" Path="MainViewModel" />
+    </appBar:AppBarWindow.DataContext>
+    <appBar:AppBarWindow.Resources>
+        <Style x:Key="CloseButtonStyle" TargetType="{x:Type ui:Button}"  >
+            <Setter Property="Width" Value="25"/>
+            <Setter Property="Height" Value="25"/>
+            <Setter Property="Foreground" Value="{ui:ThemeResource TextFillColorPrimaryBrush}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ui:Button}" >
+                        <Border
+                                    Width="{TemplateBinding Width}"
+                                    Height="{TemplateBinding Height}"
+                                    MinWidth="{TemplateBinding Width}"
+                                    MinHeight="{TemplateBinding Height}"
+                                    Padding="1"
+                                    HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalAlignment}"
+                                    BorderThickness="0"
+                                    Background="{TemplateBinding Background}">
+                            <ContentPresenter x:Name="Icon"
+                                              Content="{TemplateBinding Icon}"
+                                              Margin="0"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              TextElement.FontSize="20"
+                                              TextElement.Foreground="{TemplateBinding Foreground}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="Red" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="PaleVioletRed" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </appBar:AppBarWindow.Resources>
+    <DockPanel >
+        <DockPanel.Style>
+            <Style TargetType="{x:Type DockPanel}">
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Path=IsBackgroundRefreshing, ElementName=Root}" Value="False">
+                        <Setter Property="Cursor" Value="Arrow"/>
+                    </DataTrigger>
+                    <DataTrigger Binding="{Binding Path=IsBackgroundRefreshing, ElementName=Root}" Value="True">
+                        <Setter Property="Cursor" Value="ArrowCD"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+        </DockPanel.Style>
+        <!-- Resize Thumb -->
+        <Thumb Background="{ui:ThemeResource ApplicationBackgroundBrush}"
+               DragCompleted="ResizeDragCompleted" DragDelta="ResizeDragDelta" DragStarted="ResizeDragStarted" appBar:AppBarWindow.BarAutoSize="Add">
+            <Thumb.Style>
+                <Style TargetType="{x:Type Thumb}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Left">
+                            <Setter Property="Width" Value="5" />
+                            <Setter Property="DockPanel.Dock" Value="Right" />
+                            <Setter Property="Cursor" Value="SizeWE" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Right">
+                            <Setter Property="Width" Value="5" />
+                            <Setter Property="DockPanel.Dock" Value="Left" />
+                            <Setter Property="Cursor" Value="SizeWE" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Top">
+                            <Setter Property="Height" Value="5" />
+                            <Setter Property="DockPanel.Dock" Value="Bottom" />
+                            <Setter Property="Cursor" Value="SizeNS" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Bottom">
+                            <Setter Property="Height" Value="5" />
+                            <Setter Property="DockPanel.Dock" Value="Top" />
+                            <Setter Property="Cursor" Value="SizeNS" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=IsAutoSized ,ElementName=Root}" Value="True">
+                            <Setter Property="IsEnabled" Value="False"/>
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=IsInMenuPopup}" Value="True">
+                            <Setter Property="IsEnabled" Value="False"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Thumb.Style>
+        </Thumb>
+
+        <!-- Menu popup toggle -->
+        <StackPanel Orientation="Horizontal" Margin="3,1" VerticalAlignment="Center" HorizontalAlignment="Left">
+            <StackPanel.Style>
+                <Style TargetType="{x:Type StackPanel}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Left">
+                            <Setter Property="DockPanel.Dock" Value="Top" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Right">
+                            <Setter Property="DockPanel.Dock" Value="Top" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Top">
+                            <Setter Property="DockPanel.Dock" Value="Left" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Bottom">
+                            <Setter Property="DockPanel.Dock" Value="Left" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+
+            <ToggleButton Margin="3,1"
+                          Width="{Binding Path=Settings.AppBarButtonHeight, ElementName=Root}"
+                          Height="{Binding Path=Settings.AppBarButtonHeight, ElementName=Root}"
+                          Padding="0"
+                          IsChecked="{Binding IsInMenuPopup}" x:Name="MenuPopupToggle">
+                <ui:SymbolIcon Symbol="LineHorizontal320"/>
+            </ToggleButton>
+        </StackPanel>
+
+
+        <!-- Menu popup -->
+        <Popup IsOpen="{Binding IsInMenuPopup, Mode=OneWay}" d:IsOpen="true"
+               PlacementTarget="{Binding ElementName=MenuPopupToggle}"
+               AllowsTransparency="True"
+               HorizontalOffset="0"
+               VerticalOffset="0"
+               Width="{Binding Settings.MenuPopupWidth}"
+               MaxHeight="{Binding Settings.MenuPopupMaxHeight}">
+            <Popup.Style>
+                <Style TargetType="{x:Type Popup}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Left">
+                            <Setter Property="Placement" Value="Right" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Right">
+                            <Setter Property="Placement" Value="Left" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Top">
+                            <Setter Property="Placement" Value="Bottom" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Bottom">
+                            <Setter Property="Placement" Value="Top" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Popup.Style>
+
+            <Border BorderThickness="1" Background="{ui:ThemeResource ApplicationBackgroundBrush}" >
+                <views:MenuPopup />
+            </Border>
+        </Popup>
+
+        <!-- Audio panel -->
+        <StackPanel Orientation="Horizontal" Margin="3,1" VerticalAlignment="Center" HorizontalAlignment="Right"
+                    Visibility="{Binding Path=Settings.ShowAudioControls, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel.Style>
+                <Style TargetType="{x:Type StackPanel}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Left">
+                            <Setter Property="DockPanel.Dock" Value="Bottom" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Right">
+                            <Setter Property="DockPanel.Dock" Value="Bottom" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Top">
+                            <Setter Property="DockPanel.Dock" Value="Right" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Bottom">
+                            <Setter Property="DockPanel.Dock" Value="Right" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+
+            <views:AudioControl DockMode="{Binding Path=DockMode, ElementName=Root, Mode=OneWay}"/>
+        </StackPanel>
+
+        <!-- App filter panel -->
+        <StackPanel Orientation="Horizontal" Margin="3,1" VerticalAlignment="Center" HorizontalAlignment="Right"
+                    Visibility="{Binding Path=Settings.ShowAppFilter, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel.Style>
+                <Style TargetType="{x:Type StackPanel}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Left">
+                            <Setter Property="DockPanel.Dock" Value="Bottom" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Right">
+                            <Setter Property="DockPanel.Dock" Value="Bottom" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Top">
+                            <Setter Property="DockPanel.Dock" Value="Right" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Bottom">
+                            <Setter Property="DockPanel.Dock" Value="Right" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+
+            <views:AppFilterControl DockMode="{Binding Path=DockMode, ElementName=Root, Mode=OneWay}" />
+        </StackPanel>
+
+        <!-- Clock panel -->
+        <StackPanel Orientation="Horizontal" Margin="3,1" VerticalAlignment="Center" HorizontalAlignment="Right"
+                    Visibility="{Binding Path=Settings.ShowClock, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel.Style>
+                <Style TargetType="{x:Type StackPanel}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Left">
+                            <Setter Property="DockPanel.Dock" Value="Bottom" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Right">
+                            <Setter Property="DockPanel.Dock" Value="Bottom" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Top">
+                            <Setter Property="DockPanel.Dock" Value="Right" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Bottom">
+                            <Setter Property="DockPanel.Dock" Value="Right" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StackPanel.Style>
+
+            <views:ClockControl DockMode="{Binding Path=DockMode, ElementName=Root, Mode=OneWay}" Width="{Binding Settings.ClockWidth}"/>
+        </StackPanel>
+
+
+        <!-- Main panel (window/pin buttons) -->
+        <WrapPanel Name="MainPanel">
+            <WrapPanel.Style>
+                <Style TargetType="{x:Type WrapPanel}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Left">
+                            <Setter Property="Orientation" Value="Vertical" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Right">
+                            <Setter Property="Orientation" Value="Vertical" />
+                            <Setter Property="HorizontalAlignment" Value="Center" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Top">
+                            <Setter Property="Orientation" Value="Horizontal" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Bottom">
+                            <Setter Property="Orientation" Value="Horizontal" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </WrapPanel.Style>
+
+            <ItemsControl Margin="5,1" ItemsSource="{Binding ButtonManager}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <appBar:AppButtonsPanel
+                            ButtonHeight="{Binding Path=Settings.AppBarButtonHeight, ElementName=Root}"
+                            ButtonMaxWidth="{Binding Path=Settings.AppBarButtonWidth, ElementName=Root}"
+                            ButtonMinWidthRatio="{Binding Path=Settings.AppBarButtonMinWidthRatio, ElementName=Root}"
+                            ButtonMargin="{Binding Path=Settings.AppBarButtonMargin, ElementName=Root}"
+                            IsAutoSized="{Binding Path=IsAutoSized, ElementName=Root}"
+                            AllowButtonReorder="{Binding Path=Settings.AllowAppBarButtonReorder, ElementName=Root}"
+                            appBar:AppBarWindow.BarAutoSize="Measure" >
+                            <appBar:AppButtonsPanel.Style>
+                                <Style TargetType="{x:Type appBar:AppButtonsPanel}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Left">
+                                            <Setter Property="Orientation" Value="Vertical" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Right">
+                                            <Setter Property="Orientation" Value="Vertical" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Top">
+                                            <Setter Property="Orientation" Value="Horizontal" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Bottom">
+                                            <Setter Property="Orientation" Value="Horizontal" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </appBar:AppButtonsPanel.Style>
+                        </appBar:AppButtonsPanel>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate  >
+                        <wpfExt:AppButton Margin="{Binding Settings.AppBarButtonMargin, ElementName=Root}"
+                                          ButtonInfo="{Binding}"
+                                          BuildContextMenuCommand="{Binding DataContext.BuildContextMenuCommand, ElementName=Root}"
+                                          ToolTip="{Binding Path=Title}"
+                                          VerticalContentAlignment="Center" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch"
+                                          ThumbnailDelay="{Binding Settings.AppBarThumbnailDelayMs, ElementName=Root}"
+                                          Padding="2,0" FontSize="10">
+                            <wpfExt:AppButton.Style>
+                                <Style TargetType="{x:Type wpfExt:AppButton}" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                                    <Setter Property="VerticalAlignment" Value="Stretch"/>
+                                    <Setter Property="Background" Value="{ui:ThemeResource ControlStrokeColorDefaultBrush}"/>
+                                    <Setter Property="MouseOverBackground" Value="{ui:ThemeResource ControlStrokeColorSecondaryBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=Type}" Value="{x:Type dto:WndInfo}">
+                                            <Setter Property="Command" Value="{Binding DataContext.ToggleApplicationWindowCommand, ElementName=Root}" />
+                                            <Setter Property="CommandParameter" Value="{Binding Path=Self.(dto:WndInfo.Hwnd)}"></Setter>
+                                        </DataTrigger>
+
+                                        <!-- active window -->
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Path=Type}" Value="{x:Type dto:WndInfo}" />
+                                                <Condition Binding="{Binding Path=Self.(dto:WndInfo.IsForeground)}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="Background" Value="{ui:ThemeResource SystemAccentColorPrimaryBrush}" />
+                                            <Setter Property="Foreground" Value="{ui:ThemeResource TextOnAccentFillColorSelectedTextBrush}" />
+                                        </MultiDataTrigger>
+
+                                        <!-- active window hover -->
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding Path=Type}" Value="{x:Type dto:WndInfo}" />
+                                                <Condition Binding="{Binding Path=Self.(dto:WndInfo.IsForeground)}" Value="True" />
+                                                <Condition Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="Background" Value="{ui:ThemeResource SystemAccentColorTertiaryBrush}" />
+                                            <Setter Property="MouseOverBackground" Value="{ui:ThemeResource SystemAccentColorTertiaryBrush}" />
+                                            <Setter Property="Foreground" Value="{ui:ThemeResource TextOnAccentFillColorSelectedTextBrush}" />
+                                        </MultiDataTrigger>
+
+                                        <!-- pinned app -->
+                                        <DataTrigger Binding="{Binding Path=Type}" Value="{x:Type dto:PinnedAppInfo}">
+                                            <Setter Property="Command" Value="{Binding DataContext.LaunchPinnedAppCommand, ElementName=Root}" />
+                                            <Setter Property="CommandParameter" Value="{Binding Path=.}"></Setter>
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="FontStyle" Value="Italic"/>
+                                        </DataTrigger>
+
+
+                                        <Trigger Property="IsDragAndDropSource" Value="True">
+                                            <Setter Property="Background" Value="#FFB8E4FE" />
+                                        </Trigger>
+                                        <Trigger Property="IsDragAndDropTarget" Value="True">
+                                            <Setter Property="Background" Value="DarkGray" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+
+                            </wpfExt:AppButton.Style>
+                            <wpfExt:AppButton.Resources>
+                                <Style TargetType="{x:Type ContextMenu}" BasedOn="{StaticResource {x:Type ContextMenu}}">
+                                    <Setter Property="MinWidth" Value="140" />
+                                    <Setter Property="MaxWidth" Value="340" />
+                                    <Setter Property="Template">
+                                        <Setter.Value>
+                                            <ControlTemplate TargetType="{x:Type ContextMenu}">
+                                                <Border
+                                                    x:Name="Border"
+                                                    Padding="5,8,5,8"
+                                                    Background="{TemplateBinding Background}"
+                                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="8">
+                                                    <StackPanel
+                                                        ClipToBounds="True"
+                                                        IsItemsHost="True"
+                                                        KeyboardNavigation.DirectionalNavigation="Cycle"
+                                                        Orientation="Vertical" />
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsOpen" Value="True">
+                                                        <!--  Animate  -->
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+
+
+                                <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                    <Setter Property="TextElement.FontStyle" Value="Normal"/>
+                                    <Setter Property="TextElement.FontWeight" Value="Normal"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="Role" Value="SubmenuItem">
+                                            <Setter Property="Template" Value="{DynamicResource MenuItemTemplate}" />
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter Property="Template" Value="{DynamicResource MenuItemHeaderTemplate}" />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                                <ControlTemplate x:Key="MenuItemTemplate" TargetType="{x:Type MenuItem}">
+                                    <Border x:Name="Border"
+                                                    Margin="3"
+                                                    Background="Transparent"
+                                                    CornerRadius="3">
+                                        <Grid Margin="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <ContentPresenter
+                                                x:Name="Icon"
+                                                Grid.Column="0"
+                                                Margin="0,0,6,0"
+                                                VerticalAlignment="Center"
+                                                Content="{TemplateBinding Icon}" 
+                                                Width="16" Height="16"/>
+                                            <ContentPresenter
+                                                        x:Name="HeaderPresenter"
+                                                        Grid.Column="1"
+                                                        VerticalAlignment="Center"
+                                                        ContentSource="Header"
+                                                        RecognizesAccessKey="True" 
+                                                        TextElement.Foreground="{TemplateBinding Foreground}" >
+                                                <ContentPresenter.Resources>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="TextWrapping" Value="NoWrap" />
+                                                        <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                                    </Style>
+                                                </ContentPresenter.Resources>
+                                            </ContentPresenter>
+                                        </Grid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsHighlighted" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{ui:ThemeResource SubtleFillColorSecondaryBrush}"/>
+                                        </Trigger>
+                                        <Trigger Property="Header" Value="{x:Null}">
+                                            <Setter TargetName="HeaderPresenter" Property="Visibility" Value="Collapsed" />
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter Property="Foreground" Value="{ui:ThemeResource TextFillColorDisabledBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+
+                                <ControlTemplate x:Key="MenuItemHeaderTemplate" TargetType="{x:Type MenuItem}">
+                                    <Border x:Name="Border"
+                                                    Margin="4,6,4,0"
+                                                    Background="Transparent"
+                                                    CornerRadius="0">
+                                        <Grid Margin="0">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <ContentPresenter
+                                                        x:Name="HeaderPresenter"
+                                                        Grid.Column="0"
+                                                        VerticalAlignment="Bottom"
+                                                        ContentSource="Header"
+                                                        RecognizesAccessKey="True" 
+                                                        TextElement.Foreground="{ui:ThemeResource TextFillColorDisabledBrush}" />
+                                        </Grid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="Header" Value="{x:Null}">
+                                            <Setter TargetName="HeaderPresenter" Property="Visibility" Value="Collapsed" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+
+
+                            </wpfExt:AppButton.Resources>
+                            <wpfExt:AppButton.ContextMenu>
+                                <ContextMenu Padding="33">
+                                    <MenuItem>Initial menu; this will be replaced ...</MenuItem>
+                                </ContextMenu>
+                            </wpfExt:AppButton.ContextMenu>
+                            <Grid Margin="2,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Image Grid.Column="0" Source="{Binding Path=BitmapSource}" Width="16" Height="16" Stretch="Fill" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Path=Title}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                                <wpfExt:ThumbnailPopup 
+                                    HorizontalOffset="0"
+                                    VerticalOffset="-1"
+                                    AllowsTransparency="True"
+                                    Width="{Binding Path=Settings.AppBarThumbnailWidth ,ElementName=Root}"
+                                    Height="{Binding Path=Settings.AppBarThumbnailHeight ,ElementName=Root}"
+                                    PlacementTarget="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type wpfExt:AppButton}}}"
+                                    ShowWndContextMenu="{Binding DataContext.IsContextMenuOnThumbnailEnabled ,ElementName=Root, FallbackValue=false}">
+                                    <Border BorderThickness="1" BorderBrush="{ui:ThemeResource ControlElevationBorderBrush}" Background="{ui:ThemeResource ApplicationBackgroundBrush}" CornerRadius="5" >
+                                        <StackPanel Width="30" Height="30" VerticalAlignment="Top" HorizontalAlignment="Right">
+
+                                            <Popup 
+                                            HorizontalOffset="0"
+                                            VerticalOffset="0"
+                                            AllowsTransparency="True"
+                                            Width="30"
+                                            Height="30"
+                                            
+                                            Placement="Relative"
+                                            IsOpen="{Binding Path=IsOpen ,RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type wpfExt:ThumbnailPopup}}}"
+                                            PlacementTarget="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type StackPanel}}}">
+                                                <ui:Button Style="{StaticResource CloseButtonStyle}" Icon="{ui:SymbolIcon DismissSquare20}"
+                                                           Command="{Binding DataContext.CloseApplicationWindowCommand,ElementName=Root}" CommandParameter="{Binding Self}" />
+                                            </Popup>
+                                        </StackPanel>
+                                        
+                                    </Border>
+                                    <wpfExt:ThumbnailPopup.Style>
+                                        <Style TargetType="wpfExt:ThumbnailPopup">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Left">
+                                                    <Setter Property="Placement" Value="Right" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Right">
+                                                    <Setter Property="Placement" Value="Left" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Top">
+                                                    <Setter Property="Placement" Value="Bottom" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Bottom">
+                                                    <Setter Property="Placement" Value="Top" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=Type}" Value="{x:Type dto:WndInfo}">
+                                                    <Setter Property="SourceHwnd" Value="{Binding Path=Self.(dto:WndInfo.Hwnd)}" />
+                                                    <Setter Property="IsOpen" Value="{Binding CanShowThumbnail, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type wpfExt:AppButton}}}"/>
+                                                    <Setter Property="ThumbnailShowCommand" Value="{Binding Path=DataContext.ShowThumbnailCommand, ElementName=Root}" />
+                                                    <Setter Property="ThumbnailHideCommand" Value="{Binding Path=DataContext.HideThumbnailCommand, ElementName=Root}" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Path=Type}" Value="{x:Type dto:PinnedAppInfo}">
+                                                    <Setter Property="IsOpen" Value="False" />
+                                                    <Setter Property="IsEnabled" Value="False" />
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </wpfExt:ThumbnailPopup.Style>
+                                </wpfExt:ThumbnailPopup>
+
+                            </Grid>
+                        </wpfExt:AppButton>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </WrapPanel>
+
+
+    </DockPanel>
+</appBar:AppBarWindow>

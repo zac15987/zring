@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Zring": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    },
+    "Native Debug": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
