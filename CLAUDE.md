@@ -32,6 +32,10 @@ There is one UI test project (`zring.Tests.UI`, FlaUI + xUnit) and no linter con
 - Language override from CLI uses `Language=cs` (no `AppSettings:` prefix — explicit exception in `App.xaml.cs` host configuration).
 - Any other setting can be overridden via `AppSettings:Key=value` CLI arg or env var (standard .NET Configuration).
 
+### Verify after edits
+
+Always run `dotnet build zring.sln` after editing any code, XAML, or `.csproj` file in this repo, before reporting the task complete. XAML in particular only surfaces parser errors at build time — visual inspection isn't sufficient. If the build fails, fix it before continuing. Skip the build only for pure documentation edits (`*.md`) and `appsettings.json` value tweaks.
+
 ## Architecture
 
 ### Host + DI composition
