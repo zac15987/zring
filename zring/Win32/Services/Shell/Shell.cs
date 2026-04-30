@@ -239,19 +239,6 @@ namespace Zring.Win32.Services.Shell
         }
 
         /// <summary>
-        /// Displays or hides the desktop.
-        /// </summary>
-        internal static void ToggleDesktop()
-        {
-            var shell = new CShell();
-            // ReSharper disable once SuspiciousTypeConversion.Global
-            if (shell is IShellDispatch6 shellDispatch)
-            {
-                shellDispatch.ToggleDesktop();
-            }
-        }
-
-        /// <summary>
         /// Displays the Run dialog.
         /// </summary>
         internal static void FileRun()

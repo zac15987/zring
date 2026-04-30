@@ -15,7 +15,6 @@ using Zring.Config;
 using Zring.WpfExt;
 using Microsoft.Extensions.Options;
 using Zring.AppBar;
-using Zring.Win32.Services.Shell;
 using Application = System.Windows.Application;
 using Microsoft.Extensions.Logging;
 
@@ -243,11 +242,6 @@ namespace Zring.ViewModel
         public ICommand ShowColorsCommand { get; }
 
         /// <summary>
-        /// Command requesting to toggle desktop
-        /// </summary>
-        public ICommand ToggleDesktopCommand { get; }
-
-        /// <summary>
         /// Command requesting to toggle themes
         /// </summary>
         public ICommand ToggleThemeCommand { get; }
@@ -283,7 +277,6 @@ namespace Zring.ViewModel
 
             ToggleRunOnStartupCommand = new RelayCommand(ToggleRunOnWinStartup);
             ShowSettingsCommand = new RelayCommand(ShowSettings);
-            ToggleDesktopCommand = new RelayCommand(ToggleDesktop);
             ToggleThemeCommand = new RelayCommand(ToggleTheme);
             ShowColorsCommand = new RelayCommand(ShowColors);
             RefreshWindowCollectionCommand = new RelayCommand(Main.RefreshAllWindowsCollection);
@@ -391,14 +384,6 @@ namespace Zring.ViewModel
 #if DEBUG
             Debug.WriteLine($"Theme change to {(IsDarkTheme ? "Dark" : "Light")}");
 #endif
-        }
-
-        /// <summary>
-        /// Toggles Windows Desktop
-        /// </summary>
-        private void ToggleDesktop()
-        {
-            Shell.ToggleDesktop();
         }
 
         /// <summary>

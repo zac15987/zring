@@ -15,7 +15,6 @@
 
                     <system:String x:Key="StrMenuPopupSettings">Settings</system:String>
                     <system:String x:Key="StrMenuPopupColors">Colors</system:String>
-                    <system:String x:Key="StrMenuPopupToggleDesktop">Toggle desktop</system:String>
                     <system:String x:Key="StrMenuPopupToggleTheme">Toggle theme</system:String>
                     <system:String x:Key="StrMenuPopupExit">Exit app</system:String>
                     <system:String x:Key="StrMenuPopupSettingsRefresh">Refresh</system:String>

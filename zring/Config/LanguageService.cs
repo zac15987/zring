@@ -47,7 +47,6 @@ namespace Zring.Config
         {
             SetTranslation(TranslationKeys.MenuPopupSettings, "Settings");
             SetTranslation(TranslationKeys.MenuPopupColors, "Colors");
-            SetTranslation(TranslationKeys.MenuPopupToggleDesktop, "Toggle desktop");
             SetTranslation(TranslationKeys.MenuPopupToggleTheme, "Toggle theme");
             SetTranslation(TranslationKeys.MenuPopupExit, "Exit app");
             SetTranslation(TranslationKeys.MenuPopupSettingsRefresh, "Refresh");

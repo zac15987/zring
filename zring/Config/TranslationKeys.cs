@@ -7,7 +7,6 @@ public enum TranslationKeys
 {
     MenuPopupSettings,
     MenuPopupColors,
-    MenuPopupToggleDesktop,
     MenuPopupToggleTheme,
     MenuPopupExit,
     MenuPopupSettingsRefresh,
