@@ -203,22 +203,22 @@
         </StackPanel>
 
         <!-- App filter panel -->
-        <StackPanel Orientation="Horizontal" Margin="3,1" VerticalAlignment="Center" HorizontalAlignment="Right"
+        <StackPanel Orientation="Horizontal" Margin="3,1" VerticalAlignment="Center" HorizontalAlignment="Left"
                     Visibility="{Binding Path=Settings.ShowAppFilter, Converter={StaticResource BooleanToVisibilityConverter}}">
             <StackPanel.Style>
                 <Style TargetType="{x:Type StackPanel}">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Left">
-                            <Setter Property="DockPanel.Dock" Value="Bottom" />
+                            <Setter Property="DockPanel.Dock" Value="Top" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Right">
-                            <Setter Property="DockPanel.Dock" Value="Bottom" />
+                            <Setter Property="DockPanel.Dock" Value="Top" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Top">
-                            <Setter Property="DockPanel.Dock" Value="Right" />
+                            <Setter Property="DockPanel.Dock" Value="Left" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Path=DockMode, ElementName=Root}" Value="Bottom">
-                            <Setter Property="DockPanel.Dock" Value="Right" />
+                            <Setter Property="DockPanel.Dock" Value="Left" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
