@@ -12,6 +12,7 @@
     xmlns:views="clr-namespace:Zring.Views"
     mc:Ignorable="d ignore"
     x:Name="Root"
+    AutomationProperties.AutomationId="Zring.MainWindow"
     Title="MainWindow"
     Icon="/zring.ico"
     Background="{ui:ThemeResource ApplicationBackgroundBrush}"
@@ -136,7 +137,8 @@
                           Width="{Binding Path=Settings.AppBarButtonHeight, ElementName=Root}"
                           Height="{Binding Path=Settings.AppBarButtonHeight, ElementName=Root}"
                           Padding="0"
-                          IsChecked="{Binding IsInMenuPopup}" x:Name="MenuPopupToggle">
+                          IsChecked="{Binding IsInMenuPopup}" x:Name="MenuPopupToggle"
+                          AutomationProperties.AutomationId="Zring.MenuToggle">
                 <ui:SymbolIcon Symbol="LineHorizontal320"/>
             </ToggleButton>
         </StackPanel>
@@ -196,7 +198,8 @@
                 </Style>
             </StackPanel.Style>
 
-            <views:AudioControl DockMode="{Binding Path=DockMode, ElementName=Root, Mode=OneWay}"/>
+            <views:AudioControl DockMode="{Binding Path=DockMode, ElementName=Root, Mode=OneWay}"
+                                AutomationProperties.AutomationId="Zring.AudioControl"/>
         </StackPanel>
 
         <!-- App filter panel -->
@@ -221,7 +224,8 @@
                 </Style>
             </StackPanel.Style>
 
-            <views:AppFilterControl DockMode="{Binding Path=DockMode, ElementName=Root, Mode=OneWay}" />
+            <views:AppFilterControl DockMode="{Binding Path=DockMode, ElementName=Root, Mode=OneWay}"
+                                    AutomationProperties.AutomationId="Zring.AppFilter" />
         </StackPanel>
 
         <!-- Clock panel -->
@@ -246,12 +250,13 @@
                 </Style>
             </StackPanel.Style>
 
-            <views:ClockControl DockMode="{Binding Path=DockMode, ElementName=Root, Mode=OneWay}" Width="{Binding Settings.ClockWidth}"/>
+            <views:ClockControl DockMode="{Binding Path=DockMode, ElementName=Root, Mode=OneWay}" Width="{Binding Settings.ClockWidth}"
+                                AutomationProperties.AutomationId="Zring.Clock"/>
         </StackPanel>
 
 
         <!-- Main panel (window/pin buttons) -->
-        <WrapPanel Name="MainPanel">
+        <WrapPanel Name="MainPanel" AutomationProperties.AutomationId="Zring.MainPanel">
             <WrapPanel.Style>
                 <Style TargetType="{x:Type WrapPanel}">
                     <Style.Triggers>
@@ -311,6 +316,7 @@
                     <DataTemplate  >
                         <wpfExt:AppButton Margin="{Binding Settings.AppBarButtonMargin, ElementName=Root}"
                                           ButtonInfo="{Binding}"
+                                          AutomationProperties.AutomationId="{Binding Group}"
                                           BuildContextMenuCommand="{Binding DataContext.BuildContextMenuCommand, ElementName=Root}"
                                           ToolTip="{Binding Path=Title}"
                                           VerticalContentAlignment="Center" HorizontalContentAlignment="Left" HorizontalAlignment="Stretch"
