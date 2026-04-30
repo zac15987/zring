@@ -10,7 +10,6 @@ using Zring.Config;
 using Zring.ViewModel;
 using Zring.Win32.Services.Audio;
 using Zring.Win32.Services.JumpLists;
-using Zring.Win32.Services.Pins;
 using Zring.Win32.Services.Startup;
 using Serilog;
 using Wpf.Ui;
@@ -175,7 +174,6 @@ namespace Zring
             services.AddSingleton<IThemeService, ThemeService>();
             services.AddSingleton<ILanguageService, LanguageService>();
             services.AddSingleton<IBackgroundDataService, BackgroundDataService>();
-            services.AddSingleton<IPinsService, PinsService>(); 
 
             if (bool.TryParse(configuration[$"{nameof(AppSettings)}:{nameof(AppSettings.ShowAudioControls)}"], out var showAudioControls) && showAudioControls)
             {

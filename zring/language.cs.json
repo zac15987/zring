@@ -2,11 +2,8 @@
   "Language": {
     "Translations": {
       "MenuPopupHidePopup": "Zavřít menu",
-      "MenuPopupSearch": "Vzhledávání",
       "MenuPopupSettings": "Nastavení",
       "MenuPopupColors": "Barvy",
-      "MenuPopupApps": "Aplikace",
-      "MenuPopupPins": "Připnuté",
       "MenuPopupToggleDesktop": "Přepnout z/na plochu",
       "MenuPopupToggleTheme": "Přepnout schéma barev",
       "MenuPopupExit": "Ukončit aplikaci",
@@ -18,11 +15,6 @@
       "EdgeRight": "Vpravo",
       "EdgeTop": "Nahoře",
       "EdgeBottom": "Dole",
-
-      "SearchCategoryWindows": "Okna",
-      "SearchCategoryPinnedApps": "Připnuté aplikace",
-      "SearchCategoryInstalledApps": "Aplikace",
-      "SearchCategoryInstalledDocs": "Dokumenty",
 
       "JumpListMenuCloseWindow": "Zavřít okno",
       "JumpListMenuCancel": "Zrušit",

@@ -1,7 +1,5 @@
-using Zring.Dto.Search;
 using System;
 using System.ComponentModel;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Media.Imaging;
 
@@ -10,7 +8,7 @@ namespace Zring.Dto;
 /// <summary>
 /// Information about the button representing the window (task bar application) or pinned application
 /// </summary>
-public abstract class ButtonInfo : INotifyPropertyChanged, ISearchable
+public abstract class ButtonInfo : INotifyPropertyChanged
 {
 
     /// <summary>
@@ -107,28 +105,6 @@ public abstract class ButtonInfo : INotifyPropertyChanged, ISearchable
                 shellProperties = value;
                 OnPropertyChanged();
             }
-        }
-    }
-
-    /// <summary>
-    /// Search sort key
-    /// </summary>
-    public virtual string SearchSortKey
-    {
-        get
-        {
-            var modificationTime = DateTime.MinValue;
-
-            if (!string.IsNullOrEmpty(Executable) && File.Exists(Executable))
-            {
-                modificationTime = File.GetLastWriteTime(Executable);
-            }
-            if (ShellProperties.IsStoreApp && !string.IsNullOrEmpty(ShellProperties.PackageInstallPath) && Directory.Exists(ShellProperties.PackageInstallPath))
-            {
-                modificationTime = Directory.GetLastWriteTime(ShellProperties.PackageInstallPath);
-            }
-
-            return RunStats.BuildStandardSearchSortKey(modificationTime);
         }
     }
 

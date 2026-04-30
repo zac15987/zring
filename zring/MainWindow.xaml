@@ -360,15 +360,6 @@
                                             <Setter Property="Foreground" Value="{ui:ThemeResource TextOnAccentFillColorSelectedTextBrush}" />
                                         </MultiDataTrigger>
 
-                                        <!-- pinned app -->
-                                        <DataTrigger Binding="{Binding Path=Type}" Value="{x:Type dto:PinnedAppInfo}">
-                                            <Setter Property="Command" Value="{Binding DataContext.LaunchPinnedAppCommand, ElementName=Root}" />
-                                            <Setter Property="CommandParameter" Value="{Binding Path=.}"></Setter>
-                                            <Setter Property="Background" Value="Transparent" />
-                                            <Setter Property="FontStyle" Value="Italic"/>
-                                        </DataTrigger>
-
-
                                         <Trigger Property="IsDragAndDropSource" Value="True">
                                             <Setter Property="Background" Value="#FFB8E4FE" />
                                         </Trigger>
@@ -555,11 +546,6 @@
                                                     <Setter Property="IsOpen" Value="{Binding CanShowThumbnail, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type wpfExt:AppButton}}}"/>
                                                     <Setter Property="ThumbnailShowCommand" Value="{Binding Path=DataContext.ShowThumbnailCommand, ElementName=Root}" />
                                                     <Setter Property="ThumbnailHideCommand" Value="{Binding Path=DataContext.HideThumbnailCommand, ElementName=Root}" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Path=Type}" Value="{x:Type dto:PinnedAppInfo}">
-                                                    <Setter Property="IsOpen" Value="False" />
-                                                    <Setter Property="IsEnabled" Value="False" />
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>

@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 // ReSharper disable CommentTypo
 
@@ -22,19 +20,9 @@ public class InstalledApplications
     private readonly Dictionary<string, InstalledApplication> appsByAppLink = new();
 
     /// <summary>
-    /// Installed applications with and by Package Family name 
+    /// Installed applications with and by Package Family name
     /// </summary>
     private readonly Dictionary<string, InstalledApplication> appsByPackageAppId = new();
-
-    /// <summary>
-    /// All installed applications
-    /// </summary>
-    private readonly List<InstalledApplication> allApps = new();
-
-    /// <summary>
-    /// All items that are not applications ("documents")
-    /// </summary>
-    private readonly List<InstalledApplication> allDocuments = new();
 
     /// <summary>
     /// Add <paramref name="app"/> into the container
@@ -42,18 +30,12 @@ public class InstalledApplications
     /// <param name="app">Information about installed application</param>
     public void Add(InstalledApplication app)
     {
-        if (app.IsApplication)
-        {
-            allApps.Add(app);
-            if (!string.IsNullOrEmpty(app.AppUserModelId)) appsByAppId[app.AppUserModelId.ToLowerInvariant()] = app;
-            if (!string.IsNullOrEmpty(app.Executable)) appsByAppLink[app.Executable.ToLowerInvariant()] = app;
-            if (!string.IsNullOrEmpty(app.ShellProperties.ApplicationUserModelId))
-                appsByPackageAppId[app.ShellProperties.ApplicationUserModelId] = app;
-        }
-        else
-        {
-            allDocuments.Add(app);
-        }
+        if (!app.IsApplication) return;
+
+        if (!string.IsNullOrEmpty(app.AppUserModelId)) appsByAppId[app.AppUserModelId.ToLowerInvariant()] = app;
+        if (!string.IsNullOrEmpty(app.Executable)) appsByAppLink[app.Executable.ToLowerInvariant()] = app;
+        if (!string.IsNullOrEmpty(app.ShellProperties.ApplicationUserModelId))
+            appsByPackageAppId[app.ShellProperties.ApplicationUserModelId] = app;
     }
 
     /// <summary>
@@ -61,11 +43,9 @@ public class InstalledApplications
     /// </summary>
     public void Clear()
     {
-        allApps.Clear();
         appsByAppId.Clear();
         appsByAppLink.Clear();
         appsByPackageAppId.Clear();
-        allDocuments.Clear();
     }
 
 
@@ -116,47 +96,5 @@ public class InstalledApplications
     public string? GetPackageFullName(string appId)
     {
         return appsByPackageAppId.TryGetValue(appId, out var application) ? application.ShellProperties.PackageFullName : null;
-    }
-
-    /// <summary>
-    /// Returns installed applications where <see cref="InstalledApplication.Name"/> contains <see cref="text"/>
-    /// </summary>
-    /// <param name="text">Text to search for</param>
-    /// <returns>Installed applications where <see cref="InstalledApplication.Name"/> contains <see cref="text"/> or empty array</returns>
-    public InstalledApplication[] SearchByName(string? text)
-    {
-        return string.IsNullOrEmpty(text) ?
-            Array.Empty<InstalledApplication>() :
-            allApps
-                .Where(a =>
-                    a.IsApplication &&
-                    (a.Name.Contains(text, StringComparison.InvariantCultureIgnoreCase) ||
-                     a.ShellProperties.Keywords.Any(k => k.Contains(text, StringComparison.InvariantCultureIgnoreCase))))
-                .ToArray();
-    }
-
-    /// <summary>
-    /// Returns non-applications ("documents") where <see cref="InstalledApplication.Name"/> contains <see cref="text"/>
-    /// </summary>
-    /// <param name="text">Text to search for</param>
-    /// <returns>Installed non-applications ("documents") where <see cref="InstalledApplication.Name"/> contains <see cref="text"/> or empty array</returns>
-    public InstalledApplication[] SearchDocumentsByName(string? text)
-    {
-        return string.IsNullOrEmpty(text) ?
-            Array.Empty<InstalledApplication>() :
-            allDocuments
-                .Where(a =>
-                    !a.IsApplication &&
-                    (a.Name.Contains(text, StringComparison.InvariantCultureIgnoreCase) || a.ShellProperties.Keywords.Any(k => k.Contains(text, StringComparison.InvariantCultureIgnoreCase))))
-                .ToArray();
-    }
-
-    /// <summary>
-    /// Returns all items in Windows AppFolder - both all applications and non-applications ("documents")
-    /// </summary>
-    /// <returns>All items in Windows AppFolder</returns>
-    public InstalledApplication[] GetAllItems()
-    {
-        return allApps.Union(allDocuments).ToArray();
     }
 }

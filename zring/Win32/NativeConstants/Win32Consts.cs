@@ -193,15 +193,12 @@ namespace Zring.Win32.NativeConstants
 
         //class IDs
         internal const string CLSID_ShellLink = "00021401-0000-0000-C000-000000000046";
-        internal const string CLSID_TaskbanPin = "90aa3a4e-1cba-4233-b8bb-535773d48449";
-        internal const string CLSID_StartMenuPin = "A2A9545D-A0C2-42B4-9708-A0B2BADD77C8";
         internal const string CLSID_KnownFolderManager = "4df0c730-df9d-4ae3-9153-aa6b82e9795a";
         internal const string CLSID_ApplicationResolver = "660B90C8-73A9-4B58-8CAE-355B7F55341B";
         internal const string CLSID_AutomaticDestinationList = "f0ae1542-f497-484b-a175-a20db09144ba";
         internal const string CLSID_Shell = "13709620-C279-11CE-A49E-444553540000";
         internal const string CLSID_CMMDeviceEnumerator = "BCDE0395-E52F-467C-8E3D-C4579291692E";
         internal const string CLSID_PolicyConfigClient = "870AF99C-171D-4F9E-AF0D-E63DF40C2BC9";
-        internal const string CLSID_StartLayoutCmdlet = "75AB852C-0441-46D4-A205-EF0A33F98255";
 
         //interface IDs
         internal const string IID_IPropertyStore = "886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99";
@@ -226,15 +223,12 @@ namespace Zring.Win32.NativeConstants
         internal const string IID_IPropertyEnumTypeList = "A99400F4-3D84-4557-94BA-1242FB2CC9A6";
         internal const string IID_IPropertyStoreCapabilities = "c8e2d566-186e-4d49-bf41-6909ead56acc";
         internal const string IID_IApplicationActivationManager = "2e941141-7f97-4756-ba1d-9decde894a3d";
-        internal const string IID_IPinnedList3 = "0dd79ae2-d156-45d4-9eeb-3b549769e940";
-        internal const string IID_IFlexibleTaskbarPinnedList = "60274FA2-611F-4B8A-A293-F27BF103D148";
         internal const string IID_IKnownFolder = "3AA7AF7E-9B36-420c-A8E3-F77D4674A488";
         internal const string IID_IKnownFolderManager = "8BE2D872-86AA-4d47-B776-32CCA40C7018";
         internal const string IID_IObjectCollection = "5632B1A4-E38A-400A-928A-D4CD63230295";
         internal const string IID_IObjectArray = "92CA9DCD-5622-4BBA-A805-5E9F541BD8C9";
         internal const string IID_IAutomaticDestinationList2 = "E9C5EF8D-FD41-4F72-BA87-EB03BAD5817C";
         internal const string IID_IShellDispatch6 = "286E6F1B-7113-4355-9562-96B7E9D64C54";
-        internal const string IID_IStartLayoutCmdlet = "0BAC4102-61E9-48A5-93DD-D295ABA65369";
 
         internal const string IID_IAudioEndpointVolume = "5CDF2C82-841E-4546-9722-0CF74078229A"; 
         internal const string IID_IAudioEndpointVolumeCallback = "657804FA-D6AD-4496-8A60-352752AF4F89";

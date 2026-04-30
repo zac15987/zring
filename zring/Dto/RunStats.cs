@@ -81,20 +81,5 @@ namespace Zring.Dto
 
             return this;
         }
-
-        /// <summary>
-        /// Builds the standard search sort key for windows and applications from run statistics and given <paramref name="lastModifiedDateTime"/>
-        /// </summary>
-        /// <param name="lastModifiedDateTime">Last modification date if available otherwise <see cref="DateTime.MinValue"/> (always for windows)</param>
-        /// <returns>The search sort key for window or application keeping the run statistics</returns>
-        public string BuildStandardSearchSortKey(DateTime lastModifiedDateTime)
-        {
-            var runs = RunCount;
-            if (runs < 0) runs = 0;
-            if (runs > 999) runs = 999;
-
-            var sortKey = $"{LastForegroundDateTime:yyyyMMddHHmmss}{runs:###}{LastRunDateTime:yyyyMMddHHmm}{lastModifiedDateTime:yyyyMMddHH}";
-            return sortKey;
-        }
     }
 }

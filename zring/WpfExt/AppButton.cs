@@ -15,11 +15,6 @@ namespace Zring.WpfExt
     public class AppButton : Wpf.Ui.Controls.Button
     {
         /// <summary>
-        /// Flag whether the button supports thumbnails, allowed for window buttons only
-        /// </summary>
-        private bool IsThumbnailAllowed => ButtonInfo is WndInfo;
-
-        /// <summary>
         /// Application button information
         /// </summary>
         public ButtonInfo ButtonInfo
@@ -51,24 +46,6 @@ namespace Zring.WpfExt
         /// </summary>
         public static readonly DependencyProperty BuildContextMenuCommandProperty = DependencyProperty.Register(
             nameof(BuildContextMenuCommand),
-            typeof(ICommand),
-            typeof(AppButton),
-            new FrameworkPropertyMetadata(null));
-
-        /// <summary>
-        /// Command to be called (from popup to model view) to launch the pinned application
-        /// </summary>
-        public ICommand? LaunchPinnedAppCommand
-        {
-            get => (ICommand)GetValue(LaunchPinnedAppCommandProperty);
-            set => SetValue(LaunchPinnedAppCommandProperty, value);
-        }
-
-        /// <summary>
-        /// Command to be called (from button to model view) to launch the pinned application
-        /// </summary>
-        public static readonly DependencyProperty LaunchPinnedAppCommandProperty = DependencyProperty.Register(
-            nameof(LaunchPinnedAppCommand),
             typeof(ICommand),
             typeof(AppButton),
             new FrameworkPropertyMetadata(null));
@@ -271,31 +248,24 @@ namespace Zring.WpfExt
         }
 
         /// <summary>
-        /// Show thumbnail on mouse enter is <see cref="IsThumbnailAllowed"/>
+        /// Show thumbnail on mouse enter
         /// </summary>
         /// <param name="e">Event arguments</param>
         protected override void OnMouseEnter(MouseEventArgs e)
         {
             base.OnMouseEnter(e);
-            if (IsThumbnailAllowed)
+            if (ThumbnailDelay > 0)
             {
-                if (ThumbnailDelay > 0)
+                ThumbnailTimer = new DispatcherTimer(DispatcherPriority.Normal)
                 {
-                    ThumbnailTimer = new DispatcherTimer(DispatcherPriority.Normal)
-                    {
-                        Interval = TimeSpan.FromMilliseconds(ThumbnailDelay)
-                    };
-                    ThumbnailTimer.Tick += (_, _) => CanShowThumbnail = true;
-                    ThumbnailTimer.Start();
-                }
-                else
-                {
-                    CanShowThumbnail = true;
-                }
+                    Interval = TimeSpan.FromMilliseconds(ThumbnailDelay)
+                };
+                ThumbnailTimer.Tick += (_, _) => CanShowThumbnail = true;
+                ThumbnailTimer.Start();
             }
             else
             {
-                CanShowThumbnail = false;
+                CanShowThumbnail = true;
             }
         }
 

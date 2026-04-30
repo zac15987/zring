@@ -73,11 +73,6 @@ public class AppButtonManager : IEnumerable<ButtonInfo>, INotifyPropertyChanged,
     public WndInfo? this[IntPtr hwnd] => allWindowsByHwnd.TryGetValue(hwnd, out var w) ? w : null;
 
     /// <summary>
-    /// List of all available pinned applications
-    /// </summary>
-    private PinnedAppInfo[] allAvailablePinnedApps=Array.Empty<PinnedAppInfo>();
-
-    /// <summary>
     /// CTOR
     /// </summary>
     /// <param name="appSettings">Application settings</param>
@@ -95,7 +90,7 @@ public class AppButtonManager : IEnumerable<ButtonInfo>, INotifyPropertyChanged,
         if (updateMode != UpdateModeEnum.Idle) throw new InvalidOperationException($"{nameof(AppButtonManager)} is already updating");
         isDirty = false;
         needsRegroup = false;
-        
+
         updateMode = UpdateModeEnum.Update;
         //Mark existing window records for removal - when the record is updated the mark is changed, otherwise the record will be removed from collection at the end of processing
         foreach (var w in AllWindows)
@@ -107,9 +102,8 @@ public class AppButtonManager : IEnumerable<ButtonInfo>, INotifyPropertyChanged,
     /// <summary>
     /// Starts the hard refresh mode when the <see cref="allButtons"/> list is being (re)created from scratch
     /// </summary>
-    /// <param name="pinnedApps">Collection of pinned applications or empty array</param>
     /// <exception cref="InvalidOperationException">When the manager is already in update mode</exception>
-    public void BeginHardRefresh(PinnedAppInfo[] pinnedApps)
+    public void BeginHardRefresh()
     {
         if (updateMode != UpdateModeEnum.Idle) throw new InvalidOperationException($"{nameof(AppButtonManager)} is already updating");
         isDirty = false;
@@ -118,18 +112,6 @@ public class AppButtonManager : IEnumerable<ButtonInfo>, INotifyPropertyChanged,
         updateMode = UpdateModeEnum.HardRefresh;
         allButtons.Clear(); //clear the All windows collection
         allWindowsByHwnd.Clear();
-
-        //add all pinned applications first (might be "hidden" when adding the windows)
-        foreach (var pinnedApp in pinnedApps)
-        {
-            //initialize indicies
-            pinnedApp.SetIndicies(pinnedApp.PinnedAppIndex, pinnedApp.PinnedAppIndex);
-           
-            pinnedApp.PropertyChanged += ButtonPropertyChanged; //listen for Index change for reordering
-        }
-        allAvailablePinnedApps = pinnedApps;
-        allButtons.AddRange(allAvailablePinnedApps);
-
     }
 
     /// <summary>
@@ -148,7 +130,6 @@ public class AppButtonManager : IEnumerable<ButtonInfo>, INotifyPropertyChanged,
                 .GroupBy(w => w.Group, w => w)
                 .Where(g => g.Count() == 1)
                 .SelectMany(w => w)
-                .Where(w => allAvailablePinnedApps.All(p => p.Group != w.Group))
                 .ToArray();
             foreach (var single in singles)
             {
@@ -164,26 +145,12 @@ public class AppButtonManager : IEnumerable<ButtonInfo>, INotifyPropertyChanged,
         var anyNew= AllWindows.Any(w => w.ChangeStatus == WndInfo.ChangeStatusEnum.New);
         needsRegroup |= anyNew;
         isDirty |=anyNew;
-        
+
         //Cleanup the collection - remove the windows that were not present in the last enum windows
         var toRemove = AllWindows.Where(w => w.ChangeStatus == WndInfo.ChangeStatusEnum.ToRemove).ToArray();
         foreach (var w in toRemove)
         {
-            
-            var group = w.Group;
-            var replacedByPin = false;
-            if (allButtons.Count(b => b.Group == group)==1)
-            {
-                //is the last one in group, check if a pin should be inserted
-                var pinToUse = allAvailablePinnedApps.FirstOrDefault(p => p.Group == group);
-                if (pinToUse != null)
-                {
-                    ReplaceButton(w,pinToUse);
-                    replacedByPin = true;
-                }
-            }
-
-            if(!replacedByPin) allButtons.Remove(w);
+            allButtons.Remove(w);
             allWindowsByHwnd.Remove(w.Hwnd);
             w.PropertyChanged -= ButtonPropertyChanged;
             isDirty = true;
@@ -276,30 +243,21 @@ public class AppButtonManager : IEnumerable<ButtonInfo>, INotifyPropertyChanged,
         if (updateMode == UpdateModeEnum.Idle) throw new InvalidOperationException($"{nameof(AppButtonManager)} is not updating");
 
 
-        var lastWithinGroup = allButtons.LastOrDefault(w => w.Group == windowInfo.Group); //any window or pin from the same group already there?
+        var lastWithinGroup = allButtons.LastOrDefault(w => w.Group == windowInfo.Group); //any window from the same group already there?
         if (lastWithinGroup != null)
         {
-            var pinButton = allButtons.FirstOrDefault(b => b is PinnedAppInfo && b.Group == windowInfo.Group); //if there pin for the app? (group)
-            if (pinButton != null)
+            //there is already a window for the same process
+            var idx = allButtons.IndexOf(lastWithinGroup);
+            idx++;
+            if (idx < allButtons.Count)
             {
-                //replace pin
-                ReplaceButton(pinButton,windowInfo);
+                //add to existing process sequence
+                allButtons.Insert(idx, windowInfo);
             }
             else
             {
-                //there is already a window for the same process
-                var idx = allButtons.IndexOf(lastWithinGroup);
-                idx++;
-                if (idx < allButtons.Count)
-                {
-                    //add to existing process sequence
-                    allButtons.Insert(idx, windowInfo); 
-                }
-                else
-                {
-                    //add to end of collection as the windows from the process are the last within the collection
-                    allButtons.Add(windowInfo);
-                }
+                //add to end of collection as the windows from the process are the last within the collection
+                allButtons.Add(windowInfo);
             }
         }
         else
@@ -311,22 +269,6 @@ public class AppButtonManager : IEnumerable<ButtonInfo>, INotifyPropertyChanged,
         allWindowsByHwnd.Add(windowInfo.Hwnd, windowInfo);
 
         windowInfo.PropertyChanged += ButtonPropertyChanged; //listen for AppId change that might cause regrouping or Index change for reordering
-
-       // needsRegroup = true;
-       // isDirty = true;
-    }
-
-    /// <summary>
-    /// Replace <param name="oldButton"> in collection of buttons with <paramref name="newButton"/> and
-    /// copy indicies from <paramref name="oldButton"/> to <paramref name="newButton"/></param>
-    /// </summary>
-    /// <param name="oldButton">Button to be replaced</param>
-    /// <param name="newButton">New button</param>
-    private void ReplaceButton(ButtonInfo oldButton, ButtonInfo newButton)
-    {
-        if(allButtons.Contains(newButton)) allButtons.Remove(newButton); //remove the new button first if already in collection
-        allButtons[allButtons.IndexOf(oldButton)]=newButton; //get the position of the old button to be replaced
-        newButton.SetIndicies(oldButton.GroupIndex, newButton.WindowIndex); //place the new button instead of the old one
     }
 
     /// <summary>
@@ -338,29 +280,6 @@ public class AppButtonManager : IEnumerable<ButtonInfo>, INotifyPropertyChanged,
     {
         if (updateMode != UpdateModeEnum.Idle && e.PropertyName == nameof(WndInfo.AppId))
         {
-            if (sender is WndInfo wnd)
-            {
-                //check pin both for old group (may be inserted) and the new 
-                var oldGroup = wnd.OldGroup;
-                if (allButtons.Count(b => b.Group== oldGroup) ==0)
-                {
-                    //was the last one in group, check if a pin should be inserted
-                    var pinToUse = allAvailablePinnedApps.FirstOrDefault(p => p.Group == oldGroup);
-                    if (pinToUse != null)
-                    {
-                        allButtons.Insert(allButtons.IndexOf(wnd),pinToUse);
-                    }
-                }
-                
-                //new group - check if there is a pin
-                var pin = allButtons.FirstOrDefault(b => b.Group == wnd.Group && b is PinnedAppInfo);
-                if (pin != null)
-                {
-                    //replace
-                    ReplaceButton(pin,wnd);
-                }
-            }
-
             needsRegroup = true;
         }
 

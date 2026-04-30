@@ -17,13 +17,11 @@ using Zring.Dto;
 using Zring.Win32.NativeInterfaces.Extensions;
 using Zring.Win32.Services;
 using Zring.Win32.Services.JumpLists;
-using Zring.Win32.Services.Pins;
 using Zring.Win32.Services.Shell;
 using Zring.Win32.Services.Shell.Properties;
 using Zring.WpfExt;
 using Wpf.Ui.Appearance;
 using Wpf.Ui.Controls;
-using static Zring.Dto.PinnedAppInfo;
 using Image = System.Windows.Controls.Image;
 using MenuItem = System.Windows.Controls.MenuItem;
 using RelayCommand = Zring.WpfExt.RelayCommand;
@@ -79,11 +77,6 @@ namespace Zring.ViewModel
         /// Information about the applications installed in system
         /// </summary>
         private InstalledApplications InstalledApplications => backgroundDataService.InstalledApplications;
-
-        /// <summary>
-        /// Information about the applications pinned in the taskbar
-        /// </summary>
-        internal PinnedAppInfo[] TaskbarPinnedApplications { get; set; } = Array.Empty<PinnedAppInfo>();
 
         /// <summary>
         /// Snapshot of every visible window enumerated in the last <see cref="RefreshAllWindowsCollection"/>
@@ -175,11 +168,6 @@ namespace Zring.ViewModel
         public ICommand BuildContextMenuCommand { get; }
 
         /// <summary>
-        /// Command requesting to launch pinned application
-        /// </summary>
-        public ICommand LaunchPinnedAppCommand { get; }
-
-        /// <summary>
         /// Command requesting to close the application window
         /// </summary>
         public ICommand CloseApplicationWindowCommand { get; }
@@ -215,11 +203,6 @@ namespace Zring.ViewModel
         private readonly ILanguageService languageService;
 
         /// <summary>
-        /// Pins  service to be used
-        /// </summary>
-        private readonly IPinsService pinsService;
-
-        /// <summary>
         /// Background data service to be used
         /// </summary>
         private readonly IBackgroundDataService backgroundDataService;
@@ -240,14 +223,12 @@ namespace Zring.ViewModel
         /// <param name="jumpListService">JumpList service to be used</param>
         /// <param name="languageService">Language service to be used</param>
         /// <param name="backgroundDataService">Background Data service to be used</param>
-        /// <param name="pinsService">Pins service to be used</param>
-        internal MainViewModel(IAppSettings settings, ILogger logger, IJumpListService jumpListService, ILanguageService languageService, IBackgroundDataService backgroundDataService, IPinsService pinsService)
+        internal MainViewModel(IAppSettings settings, ILogger logger, IJumpListService jumpListService, ILanguageService languageService, IBackgroundDataService backgroundDataService)
         {
             this.logger = logger;
             this.jumpListService = jumpListService;
             this.languageService = languageService;
             this.backgroundDataService = backgroundDataService;
-            this.pinsService = pinsService;
 
             Settings = settings;
             AllMonitors = Monitor.GetAllMonitors();
@@ -258,7 +239,6 @@ namespace Zring.ViewModel
             ShowThumbnailCommand = new RelayCommand(ShowThumbnail);
             HideThumbnailCommand = new RelayCommand(HideThumbnail);
             BuildContextMenuCommand = new RelayCommand(BuildContextMenu);
-            LaunchPinnedAppCommand = new RelayCommand(LaunchPinnedApp);
             CloseApplicationWindowCommand = new RelayCommand(CloseApplicationWindow);
 
             knownAppIds = settings.GetKnowAppIds();
@@ -287,10 +267,9 @@ namespace Zring.ViewModel
         /// <param name="languageService">Language service to be used</param>
         /// <param name="jumpListService">JumpList service to be used</param>
         /// <param name="backgroundDataService">Background Data service to be used</param>
-        /// <param name="pinsService">Pins service to be used</param>
         // ReSharper disable once UnusedMember.Global
-        public MainViewModel(IOptions<AppSettings> options, ILogger<MainViewModel> logger, IJumpListService jumpListService, ILanguageService languageService, IBackgroundDataService backgroundDataService, IPinsService pinsService)
-            : this(options.Value, logger, jumpListService, languageService, backgroundDataService, pinsService)
+        public MainViewModel(IOptions<AppSettings> options, ILogger<MainViewModel> logger, IJumpListService jumpListService, ILanguageService languageService, IBackgroundDataService backgroundDataService)
+            : this(options.Value, logger, jumpListService, languageService, backgroundDataService)
         {
             //used from DI - DI populates the parameters and the internal CTOR is called then
         }
@@ -410,12 +389,9 @@ namespace Zring.ViewModel
                 //get known folders
                 knownFolders = Shell.GetKnownFolders();
 
-                //reload taskbar pinned applications
-                TaskbarPinnedApplications = pinsService.RefreshTaskbarPins();
+                ButtonManager.BeginHardRefresh();
 
-                ButtonManager.BeginHardRefresh(TaskbarPinnedApplications);
-
-                //Refresh also background data (installed apps, Start pins)
+                //Refresh also background data (installed apps)
                 backgroundDataService.Refresh();
             }
             else
@@ -475,7 +451,6 @@ namespace Zring.ViewModel
                             if (appId != null)
                             {
                                 wnd.InstalledApplication = InstalledApplications.GetInstalledApplicationFromAppId(appId);
-                                wnd.PinnedApplication = TaskbarPinnedApplications.FirstOrDefault(p => p.AppId == appId);
                                 LogAppIdResolved(hwnd, caption, appId, "Resolver");
                             }
                         }
@@ -554,7 +529,6 @@ namespace Zring.ViewModel
                         if (appUserModelId != null)
                         {
                             wnd.InstalledApplication = InstalledApplications.GetInstalledApplicationFromAppId(appUserModelId);
-                            wnd.PinnedApplication = TaskbarPinnedApplications.FirstOrDefault(p => p.AppId == appUserModelId);
                             LogAppIdResolved(hwnd, caption, appUserModelId, appIdSource ?? "Unknown");
                         }
                         else
@@ -751,48 +725,6 @@ namespace Zring.ViewModel
         }
 
         /// <summary>
-        /// Launches the pinned application
-        /// Parameter <paramref name="param"/> must be <see cref="PinnedAppInfo"/> object
-        /// </summary>
-        /// <param name="param"><see cref="PinnedAppInfo"/> object with reference to pinned application</param>
-        /// <exception cref="ArgumentException">When the <paramref name="param"/> is not <see cref="PinnedAppInfo"/> object or is null, <see cref="ArgumentException"/> is thrown</exception>
-
-        internal void LaunchPinnedApp(object? param)
-        {
-            if (param is not PinnedAppInfo pinnedAppInfo)
-            {
-                LogWrongCommandParameter(nameof(PinnedAppInfo));
-                throw new ArgumentException($"Command parameter must be {nameof(PinnedAppInfo)}", nameof(param));
-            }
-
-            pinnedAppInfo.LaunchPinnedApp(e =>
-            {
-                LogCantStartApp(pinnedAppInfo.PinnedAppType == PinnedAppTypeEnum.Package ? pinnedAppInfo.AppId ?? "[Null] appID" : pinnedAppInfo.LinkFile ?? "[Null] link file", e);
-            });
-        }
-
-        /// <summary>
-        /// Launches the installed application
-        /// Parameter <paramref name="param"/> must be <see cref="InstalledApplication"/> object
-        /// </summary>
-        /// <param name="param"><see cref="InstalledApplication"/> object with reference to installed application</param>
-        /// <exception cref="ArgumentException">When the <paramref name="param"/> is not <see cref="InstalledApplication"/> object or is null, <see cref="ArgumentException"/> is thrown</exception>
-
-        internal void LaunchInstalledApp(object? param)
-        {
-            if (param is not InstalledApplication installedApplication)
-            {
-                LogWrongCommandParameter(nameof(InstalledApplication));
-                throw new ArgumentException($"Command parameter must be {nameof(InstalledApplication)}", nameof(param));
-            }
-
-            installedApplication.LaunchInstalledApp(e =>
-            {
-                LogCantStartApp(installedApplication.ShellProperties.IsStoreApp ? installedApplication.AppUserModelId ?? "[Null] appID" : installedApplication.Executable ?? "[Null] file", e);
-            });
-        }
-
-        /// <summary>
         /// Builds the context menu for application window button
         /// Parameter <paramref name="param"/> must be <see cref="BuildContextMenuCommandParams"/> object
         /// </summary>
@@ -908,7 +840,7 @@ namespace Zring.ViewModel
             }
 
 
-            BuildContextMenuItemLaunchNewInstance(isWindow, buttonInfo, menu);
+            BuildContextMenuItemLaunchNewInstance(buttonInfo, menu);
 
             if (isWindow)
             {
@@ -948,95 +880,76 @@ namespace Zring.ViewModel
         /// <summary>
         /// Builds the context menu item for launching a new instance of application
         /// </summary>
-        /// <param name="isWindow">Flag whether the context menu is for window button</param>
-        /// <param name="buttonInfo">Information about application window or pinned app </param>
+        /// <param name="buttonInfo">Information about application window</param>
         /// <param name="menu">Context menu</param>
-        private void BuildContextMenuItemLaunchNewInstance(bool isWindow, ButtonInfo buttonInfo, ContextMenu menu)
+        private void BuildContextMenuItemLaunchNewInstance(ButtonInfo buttonInfo, ContextMenu menu)
         {
-            if (isWindow)
+            //Start new instance menu item (window)
+            if (!File.Exists(buttonInfo.Executable)) return;
+
+            var appName =
+                InstalledApplications.GetInstalledApplicationFromAppId(buttonInfo.AppId ?? string.Empty)?.Name ??
+                InstalledApplications.GetInstalledApplicationFromExecutable(buttonInfo.Executable)?.Name ??
+                FileVersionInfo.GetVersionInfo(buttonInfo.Executable).FileDescription ??
+                Path.GetFileName(buttonInfo.Executable);
+
+            var menuItem = new MenuItem
             {
-                //Start new instance menu item (window)
-                if (!File.Exists(buttonInfo.Executable)) return;
-
-                var appName =
-                    InstalledApplications.GetInstalledApplicationFromAppId(buttonInfo.AppId ?? string.Empty)?.Name ??
-                    InstalledApplications.GetInstalledApplicationFromExecutable(buttonInfo.Executable)?.Name ??
-                    FileVersionInfo.GetVersionInfo(buttonInfo.Executable).FileDescription ??
-                    Path.GetFileName(buttonInfo.Executable);
-
-                var menuItem = new MenuItem
+                Header = appName,
+                Icon = new Image
                 {
-                    Header = appName,
-                    Icon = new Image
+                    Source = InvertBitmapIfApplicable(buttonInfo.BitmapSource)
+                }
+            };
+            menuItem.Click += (_, _) =>
+            {
+                if (buttonInfo.Executable.ToLowerInvariant().EndsWith("\\explorer.exe"))
+                {
+                    //explorer and the "special" folders like control panel
+                    try
                     {
-                        Source = InvertBitmapIfApplicable(buttonInfo.BitmapSource)
+                        Process.Start(new ProcessStartInfo("explorer")
+                        {
+                            Arguments = buttonInfo.AppId != null
+                                ? $"shell:appsFolder\\{buttonInfo.AppId}"
+                                : null,
+                        });
                     }
-                };
-                menuItem.Click += (_, _) =>
-                {
-                    if (buttonInfo.Executable.ToLowerInvariant().EndsWith("\\explorer.exe"))
+                    catch (Exception ex)
                     {
-                        //explorer and the "special" folders like control panel
+                        LogCantStartApp(appName, ex);
+                    }
+                }
+                else
+                {
+                    var started = false;
+                    if (!buttonInfo.Executable.ToLowerInvariant().EndsWith("\\applicationframehost.exe"))
+                    {
                         try
                         {
-                            Process.Start(new ProcessStartInfo("explorer")
-                            {
-                                Arguments = buttonInfo.AppId != null
-                                    ? $"shell:appsFolder\\{buttonInfo.AppId}"
-                                    : null,
-                            });
+                            Process.Start(buttonInfo.Executable);
+                            started = true;
                         }
                         catch (Exception ex)
                         {
                             LogCantStartApp(appName, ex);
                         }
                     }
-                    else
-                    {
-                        var started = false;
-                        if (!buttonInfo.Executable.ToLowerInvariant().EndsWith("\\applicationframehost.exe"))
-                        {
-                            try
-                            {
-                                Process.Start(buttonInfo.Executable);
-                                started = true;
-                            }
-                            catch (Exception ex)
-                            {
-                                LogCantStartApp(appName, ex);
-                            }
-                        }
 
-                        if (started || buttonInfo.AppId == null) return;
+                    if (started || buttonInfo.AppId == null) return;
 
-                        //maybe store/UWP app
-                        try
-                        {
-                            Package.ActivateApplication(buttonInfo.AppId, null, out _);
-                        }
-                        catch (Exception ex)
-                        {
-                            LogCantStartApp(appName, ex);
-                        }
-                    }
-                };
-                menu.Items.Add(menuItem);
-            }
-            else
-            {
-                //Start new instance menu item (pinned app)
-                if (buttonInfo is not PinnedAppInfo pinnedAppInfo) return;
-                var menuItem = new MenuItem
-                {
-                    Header = pinnedAppInfo.Title,
-                    Icon = new Image
+                    //maybe store/UWP app
+                    try
                     {
-                        Source = InvertBitmapIfApplicable(pinnedAppInfo.BitmapSource)
+                        Package.ActivateApplication(buttonInfo.AppId, null, out _);
                     }
-                };
-                menuItem.Click += (_, _) => { LaunchPinnedApp(pinnedAppInfo); };
-                menu.Items.Add(menuItem);
-            }
+                    catch (Exception ex)
+                    {
+                        LogCantStartApp(appName, ex);
+                    }
+                }
+            };
+            menu.Items.Add(menuItem);
         }
 
         /// <summary>

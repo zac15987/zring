@@ -18,11 +18,6 @@ public interface IBackgroundDataService : INotifyPropertyChanged
     InstalledApplications InstalledApplications { get; }
 
     /// <summary>
-    /// Information about the applications pinned in the start menu
-    /// </summary>
-    public PinnedAppInfo[] StartPinnedApplications { get; }
-
-    /// <summary>
     /// Refresh (reload) the background data
     /// </summary>
     void Refresh();

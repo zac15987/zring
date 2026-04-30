@@ -1,9 +1,4 @@
-using System;
-using System.Diagnostics;
-using System.IO;
 using System.Windows.Media.Imaging;
-using Zring.Dto.Search;
-using Zring.Win32.Services;
 
 // ReSharper disable StringLiteralTypo
 
@@ -12,7 +7,7 @@ namespace Zring.Dto
     /// <summary>
     /// Information about installed application
     /// </summary>
-    public class InstalledApplication:ISearchable
+    public class InstalledApplication
     {
         /// <summary>
         /// Name of the installed application
@@ -51,51 +46,9 @@ namespace Zring.Dto
         private bool IsShellTarget { get; }
 
         /// <summary>
-        /// Folder in windows Start menu (if applicable)
-        /// </summary>
-        public string? StartMenuFolder { get; }
-
-        /// <summary>
-        /// Category in the application list - first char from Folder or name if not in folder, "#" for numbers, "~" for non digit/letter
-        /// </summary>
-        public string AppListCategory { get; }
-
-        /// <summary>
-        /// Folder in the application list - empty string when not in folder
-        /// </summary>
-        public string AppListFolder { get; }
-
-        /// <summary>
-        /// Application list sort key - category+folder+name
-        /// </summary>
-        public string AppListSortKey { get; }
-
-        /// <summary>
         /// Application run statistics
         /// </summary>
         public RunStats RunStats { get; } = new();
-
-        /// <summary>
-        /// Search sort key
-        /// </summary>
-        public string SearchSortKey
-        {
-            get
-            {
-                var modificationTime = DateTime.MinValue;
-
-                if (!string.IsNullOrEmpty(Executable) && File.Exists(Executable))
-                {
-                    modificationTime = File.GetLastWriteTime(Executable);
-                }
-                if (ShellProperties.IsStoreApp && !string.IsNullOrEmpty(ShellProperties.PackageInstallPath) && Directory.Exists(ShellProperties.PackageInstallPath))
-                {
-                    modificationTime = Directory.GetLastWriteTime(ShellProperties.PackageInstallPath);
-                }
-
-                return RunStats.BuildStandardSearchSortKey(modificationTime);
-            }
-        }
 
 
         /// <summary>
@@ -116,80 +69,6 @@ namespace Zring.Dto
 
             IsShellTarget = executable?.StartsWith("::{") ?? false;
             IsApplication = shellProperties.IsApplication || IsShellTarget;
-            StartMenuFolder = shellProperties.TileSuiteDisplayName;
-
-            AppListFolder = StartMenuFolder ?? string.Empty;
-
-            var appListCategoryChar = StartMenuFolder == null ? name[..1][0] : AppListFolder[..1][0];
-
-            if (char.IsLetter(appListCategoryChar))
-            {
-                AppListCategory = appListCategoryChar.ToString().ToUpper();
-            }
-            else if (char.IsDigit(appListCategoryChar))
-            {
-                AppListCategory = "#";
-            }
-            else
-            {
-                AppListCategory = "~";
-            }
-
-
-            AppListSortKey = $"{AppListCategory}{AppListFolder}{name}";
-
-        }
-
-        /// <summary>
-        /// Launches the installed application
-        /// </summary>
-        public void LaunchInstalledApp(Action<Exception>? errorAction)
-        {
-            try
-            {
-                if (ShellProperties.IsStoreApp)
-                {
-                    Package.ActivateApplication(AppUserModelId, null, out _);
-                    RunStats.UpdateLaunched();
-                }
-                else if (IsShellTarget)
-                {
-                    if (Executable == null)
-                    {
-                        errorAction?.Invoke(new FileNotFoundException("Executable shell target is null"));
-                        return; //can't do anything
-                    }
-                    //launch 
-                    var startInfo = new ProcessStartInfo($"shell:{Executable}")
-                    {
-                        Arguments = ShellProperties.LinkArguments,
-                        UseShellExecute = true
-                    };
-                    Process.Start(startInfo);
-                    RunStats.UpdateLaunched();
-                }
-                else
-                {
-                    if (Executable == null || !File.Exists(Executable))
-                    {
-                        errorAction?.Invoke(new FileNotFoundException($"Executable file doesn't exist: {Executable ?? "[NULL] Executable"}"));
-                        return; //can't do anything
-                    }
-                    //launch link
-                    var startInfo = new ProcessStartInfo(Executable)
-                    {
-                        Arguments = ShellProperties.LinkArguments,
-                        WorkingDirectory = Path.GetDirectoryName(Executable),
-                        UseShellExecute = true
-                    };
-                    Process.Start(startInfo);
-                    RunStats.UpdateLaunched();
-                }
-            }
-            catch (Exception exception)
-            {
-                errorAction?.Invoke(exception);
-            }
         }
 
         /// <summary>

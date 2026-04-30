@@ -9,7 +9,6 @@ using Zring.Config;
 using Zring.Dto;
 using Zring.Win32.NativeInterfaces.Extensions;
 using Zring.Win32.Services;
-using Zring.Win32.Services.Pins;
 using Zring.Win32.Services.Shell;
 using Zring.Win32.Services.Shell.Properties;
 
@@ -255,11 +254,6 @@ namespace Zring.ViewModel
         protected readonly IAppSettings Settings;
 
         /// <summary>
-        /// Pins  service to be used
-        /// </summary>
-        private IPinsService PinsService { get; }
-
-        /// <summary>
         /// <see cref="BackgroundWorker"/> used to retrieve helper data on background
         /// </summary>
         private readonly BackgroundWorker backgroundInitWorker;
@@ -291,22 +285,15 @@ namespace Zring.ViewModel
         public InstalledApplications InstalledApplications { get; } = new();
 
         /// <summary>
-        /// Information about the applications pinned in the start menu
-        /// </summary>
-        public PinnedAppInfo[] StartPinnedApplications { get; private set; } = Array.Empty<PinnedAppInfo>();
-
-        /// <summary>
         /// Internal CTOR
         /// Directly used by <see cref="ViewModelLocator"/> when creating a design time instance.
         /// Internally called by public "DI bound" CTOR
         /// </summary>
         /// <param name="settings">Application setting</param>
         /// <param name="logger">Logger to be used</param>
-        /// <param name="pinsService">Pins service to be used</param>
-        internal BackgroundDataService(IAppSettings settings, ILogger logger, IPinsService pinsService)
+        internal BackgroundDataService(IAppSettings settings, ILogger logger)
         {
             Settings = settings;
-            PinsService = pinsService;
             this.logger = logger;
             backgroundInitWorker = new BackgroundWorker();
             backgroundInitWorker.DoWork += (_, eventArgs) => {
@@ -345,10 +332,9 @@ namespace Zring.ViewModel
         /// </summary>
         /// <param name="options">Application settings configuration</param>
         /// <param name="logger">Logger to be used</param>
-        /// <param name="pinsService">Pins service to be used</param>
         // ReSharper disable once UnusedMember.Global
-        public BackgroundDataService(IOptions<AppSettings> options, ILogger<BackgroundDataService> logger, IPinsService pinsService) :
-            this(options.Value, logger, pinsService)
+        public BackgroundDataService(IOptions<AppSettings> options, ILogger<BackgroundDataService> logger) :
+            this(options.Value, logger)
         {
             //used from DI - DI populates the parameters and the internal CTOR is called then
         }
@@ -434,42 +420,9 @@ namespace Zring.ViewModel
                 DateTime.Now, isSuccess, resultMsg,
                 (int)durationTotal, (int)durationInstalledApps);
 
-
-            var startPins = Array.Empty<PinnedAppInfo>();
             if (isSuccess)
             {
-                //got installed apps, let's continue
-                var timestampStartStartPins = DateTime.Now;
-
-                try
-                {
-                    startPins=PinsService.RefreshStartPins();
-
-                    resultMsg = "OK";
-                    isSuccess = true;
-                }
-                catch (Exception ex)
-                {
-                    isSuccess = false;
-                    resultMsg = $"{ex.GetType().Name}: {ex.Message}";
-                }
-
-                var timestampEndStartPins = DateTime.Now;
-                var durationStartPins = (timestampEndStartPins - timestampStartStartPins).TotalMilliseconds;
-
-                timestampEndTotal = DateTime.Now;
-                durationTotal = (timestampEndTotal - timestampStart).TotalMilliseconds;
-
-                LogBackgroundDataTelemetry(
-                    isSuccess ? LogLevel.Information : LogLevel.Error,
-                    "Start pinned applications",
-                    DateTime.Now, isSuccess, resultMsg,
-                    (int)durationTotal, (int)durationStartPins);
-            }
-
-            if (isSuccess)
-            {
-                data = new BackgroundData(dataInstalledApps.ToArray(),startPins.ToArray());
+                data = new BackgroundData(dataInstalledApps.ToArray());
 
             }
             return data;
@@ -493,19 +446,6 @@ namespace Zring.ViewModel
                     }
                     InstalledApplications.Add(installedApplication);
                 }
-
-                var startPins=new List<PinnedAppInfo>();
-                foreach(var pin in data.StartPinnedApplications)
-                {
-                    if(pin.BitmapSource !=null)
-                    {
-                        //clone the object, co it can be used in other (UI) thread!!!
-                        pin.BitmapSource=pin.BitmapSource.Clone();
-                    }
-                    startPins.Add(pin);
-                }
-                StartPinnedApplications=startPins.ToArray();
-                
             }
             BackgroundDataRetrieved = true;
         }

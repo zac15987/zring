@@ -132,33 +132,6 @@ namespace Zring.Win32.Services.JumpLists
         }
 
         //----------------------------------------------
-        // 1201 Got Pinned application
-        //----------------------------------------------
-
-        /// <summary>
-        /// Logger message definition for LogGotPinnedApplication
-        /// </summary>
-        private static readonly Action<ILogger, string, Exception?> __LogGotPinnedApplicationDefinition =
-
-            LoggerMessage.Define<string>(
-                LogLevel.Debug,
-                new EventId(1201, nameof(LogGotPinnedApplication)),
-                "Retrieved pinned application info: {pinnedAppInfo}",
-                LogOptions);
-
-        /// <summary>
-        /// Logs record (Debug) when a pinned application information is retrieved
-        /// </summary>
-        /// <param name="pinnedAppInfo">Information about pinned application</param>
-        protected void LogGotPinnedApplication(PinnedAppInfo pinnedAppInfo)
-        {
-            if (Logger.IsEnabled(LogLevel.Debug))
-            {
-                __LogGotPinnedApplicationDefinition(Logger, pinnedAppInfo.ToString(), null);
-            }
-        }
-
-        //----------------------------------------------
         // 1901 JumpList Exception
         //----------------------------------------------
 

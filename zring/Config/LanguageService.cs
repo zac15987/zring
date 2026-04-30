@@ -46,11 +46,8 @@ namespace Zring.Config
         private void InitDefaultTranslations()
         {
             SetTranslation(TranslationKeys.MenuPopupHidePopup, "Hide popup");
-            SetTranslation(TranslationKeys.MenuPopupSearch, "Search");
             SetTranslation(TranslationKeys.MenuPopupSettings, "Settings");
             SetTranslation(TranslationKeys.MenuPopupColors, "Colors");
-            SetTranslation(TranslationKeys.MenuPopupApps, "Applications");
-            SetTranslation(TranslationKeys.MenuPopupPins, "Pinned apps");
             SetTranslation(TranslationKeys.MenuPopupToggleDesktop, "Toggle desktop");
             SetTranslation(TranslationKeys.MenuPopupToggleTheme, "Toggle theme");
             SetTranslation(TranslationKeys.MenuPopupExit, "Exit app");
@@ -62,11 +59,6 @@ namespace Zring.Config
             SetTranslation(TranslationKeys.EdgeRight, "Right");
             SetTranslation(TranslationKeys.EdgeTop, "Top");
             SetTranslation(TranslationKeys.EdgeBottom, "Bottom");
-
-            SetTranslation(TranslationKeys.SearchCategoryWindows, "Windows");
-            SetTranslation(TranslationKeys.SearchCategoryPinnedApps, "Pinned applications");
-            SetTranslation(TranslationKeys.SearchCategoryInstalledApps, "Applications");
-            SetTranslation(TranslationKeys.SearchCategoryInstalledDocs, "Document");
 
             SetTranslation(TranslationKeys.JumpListMenuCloseWindow, "Close window");
             SetTranslation(TranslationKeys.JumpListMenuCancel, "Cancel");

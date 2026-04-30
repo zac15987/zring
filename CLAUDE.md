@@ -87,11 +87,11 @@ When something "doesn't group right," this pipeline is almost always the cause.
 
 `AppFilterViewModel` + `Views/AppFilterControl` implement the funnel-icon popup on the appbar. The popup lists every currently running app grouped by `ButtonInfo.Group`, sourced from `MainViewModel.LastEnumeratedWindows` (pre-filter) — reading `ButtonManager` instead would shrink the list to the already-checked set. Display names come from a fallback chain: `WndInfo.InstalledApplication?.Name` → fresh `IBackgroundDataService` lookup by AppId → by executable → cleaned exe filename → window title.
 
-Selection is persisted to `appsettings.user.json` as `UserSettings.FilteredAppKeys` (lowercase AppId / executable / fallback, matching `ButtonInfo.Group`). `OnItemToggled` updates the list, calls `UserSettings.Save()`, and kicks `Main.RefreshAllWindowsCollection(false)` so the appbar updates within the next tick. Checked state for closed apps is preserved — re-launching an app automatically applies the existing filter. Pinned-app buttons are not considered by the filter, but `ShowPinnedApps` defaults to `false` anyway because pin-replacement in `AppButtonManager.EndUpdate` (lines ~175-184) would otherwise restore a pin button whenever a filtered window is removed, visually defeating the filter.
+Selection is persisted to `appsettings.user.json` as `UserSettings.FilteredAppKeys` (lowercase AppId / executable / fallback, matching `ButtonInfo.Group`). `OnItemToggled` updates the list, calls `UserSettings.Save()`, and kicks `Main.RefreshAllWindowsCollection(false)` so the appbar updates within the next tick. Checked state for closed apps is preserved — re-launching an app automatically applies the existing filter.
 
 ### Background data service
 
-`BackgroundDataService` enumerates installed applications, taskbar pins (`IPinnedList3`), and Start pins (`IStartLayoutCmdlet` — Windows 10 XML / Windows 11 JSON) off the UI thread at startup. Retrieval takes seconds; UI shows a "busy" cursor via `MainWindow.IsBackgroundRefreshing` during this period. Search ranking also optionally reads `Windows\Prefetch` for run count / last-launch data (gated by `FeatureFlags.EnableRunInfoFromWindowsPrefetch`, default `false` because `C:\Windows\Prefetch` is ACL'd to Administrators and ordinary users get `UnauthorizedAccessException` per-app at startup, flooding the log).
+`BackgroundDataService` enumerates installed applications off the UI thread at startup, populating an AppId/executable lookup that powers AppId resolution and the AppFilter display-name fallback. The data is one-shot at startup (and on hard refresh); UI shows a "busy" cursor via `MainWindow.IsBackgroundRefreshing` during this period. The pipeline also optionally reads `Windows\Prefetch` for run count / last-launch data (gated by `FeatureFlags.EnableRunInfoFromWindowsPrefetch`, default `false` because `C:\Windows\Prefetch` is ACL'd to Administrators and ordinary users get `UnauthorizedAccessException` per-app at startup, flooding the log).
 
 ### Thumbnails (DWM)
 
@@ -118,12 +118,12 @@ Win32/
 ├── NativeConstants/      Win32Consts (flags, message IDs, CLSIDs, IIDs)
 ├── NativeDelegates/      Callback delegate types (e.g. EnumWindowsProc)
 ├── NativeEnums/          DWM_*, ABM_*, WM_*, GWL_*, etc.
-├── NativeInterfaces/     [ComImport] interfaces (IShellLinkW, IPinnedList3, IApplicationResolver, IStartLayoutCmdlet, …)
+├── NativeInterfaces/     [ComImport] interfaces (IShellLinkW, IApplicationResolver, …)
 │   └── Extensions/       Managed helpers that wrap interface calls
 ├── NativeMethods/        DllImport classes split by DLL (User32, Shell32, Ole32, DwmApi, Kernel32, …)
 ├── NativeStructs/        APPBARDATA, RECT, POINT, PROPERTYKEY, STGM, …
 └── Services/             Managed services built on top of the interop
-    ├── Audio/  JumpLists/  Pins/  Shell/  Startup/
+    ├── Audio/  JumpLists/  Shell/  Startup/
     └── Thumbnail.cs, Monitor.cs, WndAndApp.cs, Prefetch.cs, Package.cs, Resource.cs
 ```
 
@@ -135,7 +135,7 @@ Uses `Microsoft.Extensions.Logging` with `LoggerMessage.Define` source-generated
 
 ### Feature flags
 
-All optional / experimental behavior goes through `AppSettings.FeatureFlags` with a `FF_*` constant in `AppSettings.cs`. Treat these as the supported toggle surface — undocumented Win32 paths (AppId resolver, pinned list, start pins, context menu on thumbnail) should always have a flag so a user can disable them when a Windows update breaks the API.
+All optional / experimental behavior goes through `AppSettings.FeatureFlags` with a `FF_*` constant in `AppSettings.cs`. Treat these as the supported toggle surface — undocumented Win32 paths (AppId resolver, context menu on thumbnail) should always have a flag so a user can disable them when a Windows update breaks the API.
 
 ### Themes & localization
 

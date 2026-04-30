@@ -1,13 +1,10 @@
-using Zring.Dto.Search;
 using Zring.Dto;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Wpf.Ui.Appearance;
@@ -15,16 +12,12 @@ using Wpf.Ui.Controls;
 using Wpf.Ui.Markup;
 using Zring.Win32.Services.Startup;
 using Zring.Config;
-using MenuItem = System.Windows.Controls.MenuItem;
 using Zring.WpfExt;
 using Microsoft.Extensions.Options;
 using Zring.AppBar;
-using Zring.Dto.AppList;
 using Zring.Win32.Services.Shell;
 using Application = System.Windows.Application;
 using Microsoft.Extensions.Logging;
-using Zring.Win32.NativeEnums;
-using Zring.Win32.Services.Pins;
 
 namespace Zring.ViewModel
 {
@@ -102,11 +95,6 @@ namespace Zring.ViewModel
         private IBackgroundDataService BackgroundDataService { get; }
 
         /// <summary>
-        /// Pins  service to be used
-        /// </summary>
-        private IPinsService PinsService { get; }
-
-        /// <summary>
         /// Flag whether the app uses the dark theme
         /// </summary>
         private bool IsDarkTheme => Main.IsDarkTheme;
@@ -153,91 +141,12 @@ namespace Zring.ViewModel
         }
 
         /// <summary>
-        /// Flag whether the search is in progress 
-        /// </summary>
-        private bool isInSearch;
-
-        /// <summary>
-        /// Flag whether the search is in progress 
-        /// </summary>
-        public bool IsInSearch
-        {
-            get => isInSearch;
-            set
-            {
-                if (isInSearch != value)
-                {
-                    isInSearch = value;
-                    if (isInSearch)
-                    {
-                        //switch panels
-                        IsInSettings = false;
-                        IsInColors = false;
-                        IsInApps = false;
-                        IsInPins = false;
-
-                        //init search
-                        InitSearch();
-                    }
-                    else
-                    {
-                        EndSearch();
-                    }
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Flag whether the search has results
-        /// </summary>
-        private bool hasSearchResults;
-
-        /// <summary>
-        /// Flag whether the search has results 
-        /// </summary>
-        public bool HasSearchResults
-        {
-            get => hasSearchResults;
-            private set
-            {
-                if (hasSearchResults != value)
-                {
-                    hasSearchResults = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Text to be searched for
-        /// </summary>
-        private string? searchText;
-
-        /// <summary>
-        /// Text to be searched for
-        /// </summary>
-        public string? SearchText
-        {
-            get => searchText;
-            set
-            {
-                if (searchText != value)
-                {
-                    searchText = value;
-                    DoSearch(searchText);
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Flag whether the settings panel is active 
+        /// Flag whether the settings panel is active
         /// </summary>
         private bool isInSettings;
 
         /// <summary>
-        /// Flag whether the settings panel is active 
+        /// Flag whether the settings panel is active
         /// </summary>
         public bool IsInSettings
         {
@@ -250,10 +159,7 @@ namespace Zring.ViewModel
                     if (isInSettings)
                     {
                         //switch panels
-                        EndSearch();
                         IsInColors = false;
-                        IsInApps = false;
-                        IsInPins = false;
                     }
                     OnPropertyChanged();
                 }
@@ -261,12 +167,12 @@ namespace Zring.ViewModel
         }
 
         /// <summary>
-        /// Flag whether the colors panel is active 
+        /// Flag whether the colors panel is active
         /// </summary>
         private bool isInColors;
 
         /// <summary>
-        /// Flag whether the colors panel is active 
+        /// Flag whether the colors panel is active
         /// </summary>
         public bool IsInColors
         {
@@ -279,10 +185,7 @@ namespace Zring.ViewModel
                     if (isInColors)
                     {
                         //switch panels
-                        EndSearch();
                         IsInSettings = false;
-                        IsInApps = false;
-                        IsInPins = false;
                     }
                     OnPropertyChanged();
                 }
@@ -290,106 +193,11 @@ namespace Zring.ViewModel
         }
 
         /// <summary>
-        /// Flag whether the apps panel is active 
-        /// </summary>
-        private bool isInApps;
-
-        /// <summary>
-        /// Flag whether the apps panel is active 
-        /// </summary>
-        public bool IsInApps
-        {
-            get => isInApps;
-            set
-            {
-                if (isInApps != value)
-                {
-                    isInApps = value;
-                    if (isInApps)
-                    {
-                        //switch panels
-                        EndSearch();
-                        IsInSettings = false;
-                        IsInColors = false;
-                        IsInPins = false;
-                    }
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Flag whether the pins panel is active 
-        /// </summary>
-        private bool isInPins;
-
-        /// <summary>
-        /// Flag whether the pins panel is active 
-        /// </summary>
-        public bool IsInPins
-        {
-            get => isInPins;
-            set
-            {
-                if (isInPins != value)
-                {
-                    isInPins = value;
-                    if (isInPins)
-                    {
-                        //switch panels
-                        EndSearch();
-                        IsInSettings = false;
-                        IsInColors = false;
-                        IsInApps = false;
-                    }
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Flag whether the Start pins are shown as icons (true) or list (false)  
-        /// </summary>
-        private bool isPinViewIcons=true;
-        /// <summary>
-        /// Flag whether the Start pins are shown as icons (true) or list (false)
-        /// </summary>
-        public bool IsPinViewIcons
-        {
-            get => isPinViewIcons;
-            set
-            {
-                if (isPinViewIcons != value)
-                {
-                    isPinViewIcons = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsPinViewList));
-                }
-            }
-        }
-        /// <summary>
-        /// Flag whether the Start pins are shown as list (true) or icons (false)
-        /// </summary>
-        public bool IsPinViewList
-        {
-            get => !isPinViewIcons;
-            set
-            {
-                if (isPinViewIcons == value)
-                {
-                    isPinViewIcons = !value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsPinViewIcons));
-                }
-            }
-        }
-
-        /// <summary>
-        /// Flag whether the menu popup is active  
+        /// Flag whether the menu popup is active
         /// </summary>
         private bool isInMenuPopup;
         /// <summary>
-        /// Flag whether the menu popup is active 
+        /// Flag whether the menu popup is active
         /// </summary>
         public bool IsInMenuPopup
         {
@@ -401,15 +209,12 @@ namespace Zring.ViewModel
                     isInMenuPopup = value;
                     if (isInMenuPopup)
                     {
-                        IsInSearch = true; //init search on open
+                        IsInSettings = true; //default panel on open
                     }
                     else
                     {
-                        IsInSearch = false; //ensure to finish search
                         IsInSettings = false; //ensure to "hide" settings
                         IsInColors = false; //ensure to "hide" colors
-                        IsInApps = false; //ensure to "hide" apps
-                        IsInPins = false; //ensure to "hide" pins
                     }
 
                     OnPropertyChanged();
@@ -423,72 +228,19 @@ namespace Zring.ViewModel
         public bool IsColorsEnabled { get; }
 
         /// <summary>
-        /// Flag whether the Start pins panel is enabled
-        /// </summary>
-        public bool IsPinsEnabled { get; }
-
-        /// <summary>
         /// Information about brushes in Light and Dark themes
         /// </summary>
         public ObservableCollection<BrushInfo> ThemeBrushes { get; } = new();
-
-        /// <summary>
-        /// Set of search results
-        /// </summary>
-        public ObservableCollection<SearchResultItem> SearchResults { get; } = new();
-
-
-        /// <summary>
-        /// Set of application list items
-        /// </summary>
-        public ObservableCollection<AppListItem> AppList { get; } = new();
-
-
-        /// <summary>
-        /// Information about the applications pinned in the startmenu
-        /// </summary>
-        private PinnedAppInfo[] StartPinnedApplications => BackgroundDataService.StartPinnedApplications;
-
-        /// <summary>
-        /// Set of Start pins list items
-        /// </summary>
-        public ObservableCollection<AppListItem> StartPinList { get; } = new();
-
-        /// <summary>
-        /// Command sending a special key press related to search
-        /// </summary>
-        public ICommand SearchSpecialKeyCommand { get; }
-
-        /// <summary>
-        /// Command requesting to show search 
-        /// </summary>
-        public ICommand ShowSearchCommand { get; }
 
         /// <summary>
         /// Command requesting to show settings
         /// </summary>
         public ICommand ShowSettingsCommand { get; }
 
-
         /// <summary>
         /// Command requesting to show colors
         /// </summary>
         public ICommand ShowColorsCommand { get; }
-
-        /// <summary>
-        /// Command requesting to show installed apps & docs
-        /// </summary>
-        public ICommand ShowAppsCommand { get; }
-
-        /// <summary>
-        /// Command sending a key press related to app list
-        /// </summary>
-        public ICommand AppListKeyCommand { get; }
-
-        /// <summary>
-        /// Command requesting to show Start pins
-        /// </summary>
-        public ICommand ShowPinsCommand { get; }
 
         /// <summary>
         /// Command requesting to toggle desktop
@@ -516,11 +268,6 @@ namespace Zring.ViewModel
         public ICommand RefreshWindowCollectionCommand { get; }
 
         /// <summary>
-        /// Command to launch the app shortcut at app list panel
-        /// </summary>
-        public ICommand LaunchAppShortcutCommand { get; }
-
-        /// <summary>
         /// Internal CTOR
         /// </summary>
         /// <param name="main">Reference to main view model</param>
@@ -528,9 +275,8 @@ namespace Zring.ViewModel
         /// <param name="logger">Logger to be used</param>
         /// <param name="startupService">Startup service to be used</param>
         /// <param name="languageService">Language  service to be used</param>
-        /// <param name="pinsService">Pins service to be used</param>
         /// <param name="backgroundDataService">Background Data service to be used</param>
-        internal MenuPopupViewModel(MainViewModel main, IAppSettings settings, ILogger logger, IStartupService startupService, ILanguageService languageService, IBackgroundDataService backgroundDataService, IPinsService pinsService)
+        internal MenuPopupViewModel(MainViewModel main, IAppSettings settings, ILogger logger, IStartupService startupService, ILanguageService languageService, IBackgroundDataService backgroundDataService)
         {
             this.logger = logger;
 
@@ -539,25 +285,17 @@ namespace Zring.ViewModel
             StartupService = startupService;
             LanguageService = languageService;
             BackgroundDataService = backgroundDataService;
-            PinsService = pinsService;
 
             ToggleRunOnStartupCommand = new RelayCommand(ToggleRunOnWinStartup);
-            SearchSpecialKeyCommand = new RelayCommand(SearchSpecialKey);
             ShowSettingsCommand = new RelayCommand(ShowSettings);
             ToggleDesktopCommand = new RelayCommand(ToggleDesktop);
             ToggleThemeCommand = new RelayCommand(ToggleTheme);
-            ShowSearchCommand = new RelayCommand(ShowSearch);
             ShowColorsCommand = new RelayCommand(ShowColors);
-            ShowAppsCommand = new RelayCommand(ShowApps);
-            ShowPinsCommand = new RelayCommand(ShowPins);
-            AppListKeyCommand = new RelayCommand(AppListKey);
             HideMenuPopupCommand = new RelayCommand(HideMenuPopup);
             RefreshWindowCollectionCommand = new RelayCommand(Main.RefreshAllWindowsCollection);
-            LaunchAppShortcutCommand = new RelayCommand(LaunchAppShortcut);
 
             runOnWinStartupSet = startupService.HasAppStartupLink();
             IsColorsEnabled = Settings.FeatureFlag(AppSettings.FF_EnableColorsInMenuPopup, false);
-            IsPinsEnabled = Settings.FeatureFlag(AppSettings.FF_EnableStartMenuPins, false);
             LanguageService = languageService;
 
             Edges = new EdgeInfo[] {
@@ -565,15 +303,6 @@ namespace Zring.ViewModel
                 new(AppBarDockMode.Right,LanguageService.Translate(TranslationKeys.EdgeRight)),
                 new(AppBarDockMode.Top,LanguageService.Translate(TranslationKeys.EdgeTop)),
                 new(AppBarDockMode.Bottom,LanguageService.Translate(TranslationKeys.EdgeBottom))};
-
-            backgroundDataService.PropertyChanged += (_, args) =>
-            {
-                if (args.PropertyName == nameof(BackgroundDataService.BackgroundDataRetrieved) && backgroundDataService.BackgroundDataRetrieved)
-                {
-                    BuildAppList();
-                    BuildStartPinsList();
-                }
-            };
         }
 
         /// <summary>
@@ -585,10 +314,9 @@ namespace Zring.ViewModel
         /// <param name="startupService">Startup service to be used</param>
         /// <param name="languageService">Language  service to be used</param>
         /// <param name="backgroundDataService">Background Data service to be used</param>
-        /// <param name="pinsService">Pins service to be used</param>
         // ReSharper disable once UnusedMember.Global
-        public MenuPopupViewModel(MainViewModel main, ILogger<MainViewModel> logger, IOptions<AppSettings> options, IStartupService startupService, ILanguageService languageService, IBackgroundDataService backgroundDataService, IPinsService pinsService)
-            : this(main, options.Value, logger, startupService, languageService, backgroundDataService, pinsService)
+        public MenuPopupViewModel(MainViewModel main, ILogger<MainViewModel> logger, IOptions<AppSettings> options, IStartupService startupService, ILanguageService languageService, IBackgroundDataService backgroundDataService)
+            : this(main, options.Value, logger, startupService, languageService, backgroundDataService)
         {
             //used from DI - DI populates the parameters and the internal CTOR is called then
         }
@@ -636,346 +364,6 @@ namespace Zring.ViewModel
             RunOnWinStartupSet = StartupService.HasAppStartupLink();
         }
 
-        #region Search
-
-        /// <summary>
-        /// Initialize search
-        /// </summary>
-        private void InitSearch()
-        {
-            IsInSettings = false; //ensure to switch the "tab" in popup
-            if (!Settings.AllowSearch) return;
-
-            //clean the search box
-            SearchText = string.Empty;
-
-            IsInSearch = true;
-
-        }
-
-        /// <summary>
-        /// Execute the search. Searches for the <paramref name="text"/> in the window captions and names of pinned and installed applications.
-        /// Use prefix "w:" to search in window captions only or "a:" to search in applications only
-        /// </summary>
-        /// <param name="text">Text to search for</param>
-        private void DoSearch(string? text)
-        {
-            if (!Settings.AllowSearch) return;
-
-            if (string.IsNullOrEmpty(text))
-            {
-                SearchResults.Clear();
-                HasSearchResults = false;
-                return;
-            }
-
-            var lastDefaultRef = GetSearchResultDefault()?.ResultReference;
-            SearchResults.Clear();
-            var isWindowsOnlySearch = false;
-            var isAppsOnlySearch = false;
-
-            if (text.ToLowerInvariant().StartsWith("w:"))
-            {
-                text = (text + " ")[2..];
-                isWindowsOnlySearch = true;
-            }
-            else if (text.ToLowerInvariant().StartsWith("a:"))
-            {
-                text = (text + " ")[2..];
-                isAppsOnlySearch = true;
-            }
-
-            text = text.Trim();
-
-            var categoryLimit = Settings.SearchListCategoryLimit;
-            var needsSeparator = false;
-
-            //windows
-            if (!isAppsOnlySearch)
-            {
-                var windows = Main.ButtonManager
-                    .Where(b => b is WndInfo && b.Title.Contains(text, StringComparison.InvariantCultureIgnoreCase))
-                    .Cast<WndInfo>()
-                    .OrderByDescending(w => w.SearchSortKey)
-                    .ToArray();
-                if (windows.Length > 0)
-                {
-                    SearchResults.Add(new SearchResultItemHeader(LanguageService.Translate(TranslationKeys.SearchCategoryWindows) ?? "Windows"));
-                    foreach (var window in windows.Take(categoryLimit))
-                    {
-                        var item = new SearchResultItemWindow(window, w => Main.ToggleApplicationWindow(w.Hwnd, true));
-                        if (window == lastDefaultRef)
-                        {
-                            item.IsDefault = true;
-                        }
-
-                        SearchResults.Add(item);
-                    }
-
-                    if (windows.Length > categoryLimit) SearchResults.Add(new SearchResultItemMoreItems());
-
-                    needsSeparator = true;
-                }
-            }
-
-            //pinned and installed apps
-            if (!isWindowsOnlySearch)
-            {
-                var taskbarPins =
-                    Main.TaskbarPinnedApplications
-                    .Where(b =>
-                        b.Title.Contains(text, StringComparison.InvariantCultureIgnoreCase) ||
-                        b.ShellProperties.Keywords.Any(k => k.Contains(text, StringComparison.InvariantCultureIgnoreCase)))
-                    .ToArray();
-                var taskBarPinAppIds = taskbarPins.Where(p => p.AppId != null).Select(p => p.AppId!).Distinct().ToArray();
-
-                var startPins =
-                    StartPinnedApplications
-                    .Where(s =>
-                        s.Title.Contains(text, StringComparison.InvariantCultureIgnoreCase) &&
-                        !taskBarPinAppIds.Contains(s.AppId));
-
-                var pins =
-                    taskbarPins
-                    .Union(startPins)
-                    .OrderByDescending(b => b.SearchSortKey)
-                    .ToArray();
-
-                if (pins.Length > 0)
-                {
-                    if (needsSeparator)
-                    {
-                        SearchResults.Add(new SearchResultItemSeparator());
-                    }
-
-                    SearchResults.Add(new SearchResultItemHeader(LanguageService.Translate(TranslationKeys.SearchCategoryPinnedApps) ?? "Pinned applications"));
-                    foreach (var pin in pins.Take(categoryLimit))
-                    {
-                        var item = new SearchResultItemPinnedApp(pin, Main.LaunchPinnedApp);
-                        if (pin == lastDefaultRef)
-                        {
-                            item.IsDefault = true;
-                        }
-
-                        SearchResults.Add(item);
-                    }
-
-                    if (pins.Length > categoryLimit) SearchResults.Add(new SearchResultItemMoreItems());
-
-                    needsSeparator = true;
-                }
-
-
-                var installs = BackgroundDataService.InstalledApplications.SearchByName(text).OrderByDescending(i => i.SearchSortKey).ToArray();
-                if (installs.Length > 0)
-                {
-                    if (needsSeparator)
-                    {
-                        SearchResults.Add(new SearchResultItemSeparator());
-                    }
-
-                    SearchResults.Add(new SearchResultItemHeader(LanguageService.Translate(TranslationKeys.SearchCategoryInstalledApps) ?? "Applications"));
-                    foreach (var install in installs.Take(categoryLimit))
-                    {
-                        var item = new SearchResultItemInstalledApp(install, Main.LaunchInstalledApp);
-                        if (install == lastDefaultRef)
-                        {
-                            item.IsDefault = true;
-                        }
-
-                        SearchResults.Add(item);
-                    }
-
-                    if (installs.Length > categoryLimit) SearchResults.Add(new SearchResultItemMoreItems());
-
-                    needsSeparator = true;
-                }
-            }
-
-            //installed non-apps (documents)
-            if (!isWindowsOnlySearch && !isAppsOnlySearch)
-            {
-                var docs = BackgroundDataService.InstalledApplications.SearchDocumentsByName(text).OrderByDescending(i => i.SearchSortKey).ToArray();
-                if (docs.Length > 0)
-                {
-                    if (needsSeparator)
-                    {
-                        SearchResults.Add(new SearchResultItemSeparator());
-                    }
-
-                    SearchResults.Add(new SearchResultItemHeader(LanguageService.Translate(TranslationKeys.SearchCategoryInstalledDocs) ?? "Documents"));
-                    foreach (var install in docs.Take(categoryLimit))
-                    {
-                        var item = new SearchResultItemInstalledDoc(install, Main.LaunchInstalledApp);
-                        if (install == lastDefaultRef)
-                        {
-                            item.IsDefault = true;
-                        }
-
-                        SearchResults.Add(item);
-                    }
-
-                    if (docs.Length > categoryLimit) SearchResults.Add(new SearchResultItemMoreItems());
-                }
-            }
-
-            HasSearchResults = SearchResults.Count > 0;
-            if (GetSearchResultDefault() == null && HasSearchResults)
-            {
-                GetSearchResultsWithRef()[0].IsDefault = true;
-            }
-        }
-
-        //Finishes search - cleanup
-        private void EndSearch()
-        {
-            //clean the search box
-            SearchText = string.Empty;
-            IsInSearch = false;
-        }
-
-        /// <summary>
-        /// Process the special key for search 
-        /// Parameter <paramref name="param"/> must be <see cref="Key"/> value
-        /// </summary>
-        /// <param name="param"><see cref="Key"/> pressed </param>
-        /// <exception cref="ArgumentException">When the <paramref name="param"/> is not <see cref="Key"/> object or is null, <see cref="ArgumentException"/> is thrown</exception>
-        private void SearchSpecialKey(object? param)
-        {
-            if (!Settings.AllowSearch) return;
-
-            if (param is not KeyCommand.CommandParameters commandParameters)
-            {
-                throw new ArgumentException($"Command parameter must be {nameof(KeyCommand.CommandParameters)}", nameof(param));
-            }
-
-            var key = commandParameters.Key;
-
-            if (key == Key.Escape)
-            {
-                if (!string.IsNullOrEmpty(SearchText))
-                {
-                    SearchText = string.Empty;
-                }
-                else
-                {
-                    EndSearch();
-                    HideMenuPopup();
-                }
-            }
-
-            if (key == Key.Enter)
-            {
-                GetSearchResultDefault()?.Launch();
-            }
-
-            if (key == Key.Up)
-            {
-                var results = GetSearchResultsWithRef();
-                var current = GetSearchResultDefault();
-                if (current != null)
-                {
-                    var idx = results.IndexOf(current);
-                    idx--;
-                    if (idx >= 0)
-                    {
-                        current.IsDefault = false;
-                        results[idx].IsDefault = true;
-                    }
-                }
-            }
-
-            if (key == Key.Down)
-            {
-                var results = GetSearchResultsWithRef();
-                var current = GetSearchResultDefault();
-                if (current != null)
-                {
-                    var idx = results.IndexOf(current);
-                    idx++;
-                    if (idx < results.Count)
-                    {
-                        current.IsDefault = false;
-                        results[idx].IsDefault = true;
-                    }
-                }
-            }
-
-            if (key == Key.PageUp)
-            {
-                var results = GetSearchResultsWithRef();
-                var current = GetSearchResultDefault();
-
-                if (current != null)
-                {
-                    var idx = results.IndexOf(current);
-                    var currentType = current.GetType();
-
-                    do
-                    {
-                        idx--;
-                        if (idx < 0 || results[idx].GetType() == currentType) continue;
-
-                        current.IsDefault = false;
-                        results[idx].IsDefault = true;
-                        break;
-                    } while (idx >= 0);
-                }
-            }
-
-            if (key == Key.PageDown)
-            {
-                var results = GetSearchResultsWithRef();
-                var current = GetSearchResultDefault();
-
-                if (current != null)
-                {
-                    var idx = results.IndexOf(current);
-                    var currentType = current.GetType();
-
-                    do
-                    {
-                        idx++;
-                        if (idx >= results.Count || results[idx].GetType() == currentType) continue;
-
-                        current.IsDefault = false;
-                        results[idx].IsDefault = true;
-                        break;
-                    } while (idx < results.Count);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets the <see cref="SearchResults"/> that can be launched (windows, applications).
-        /// </summary>
-        /// <returns>Search results that can be launched (windows, applications)</returns>
-        private List<SearchResultItemWithRef> GetSearchResultsWithRef()
-        {
-            var results = SearchResults.Where(r => r is SearchResultItemWithRef).Cast<SearchResultItemWithRef>().ToList();
-            return results;
-        }
-
-        /// <summary>
-        /// Gets the search result that is marked as <see cref="SearchResultItemWithRef.IsDefault"/>
-        /// </summary>
-        /// <returns>Default search result or null if no search result is marked as default</returns>
-        private SearchResultItemWithRef? GetSearchResultDefault()
-        {
-            var result = GetSearchResultsWithRef().FirstOrDefault(r => r.IsDefault);
-            return result;
-        }
-
-        /// <summary>
-        /// Switch the panel to Search
-        /// </summary>
-        private void ShowSearch()
-        {
-            IsInSearch = true;
-        }
-
-        #endregion
-
         /// <summary>
         /// Switch the panel to Settings
         /// </summary>
@@ -990,142 +378,6 @@ namespace Zring.ViewModel
         private void ShowColors()
         {
             IsInColors = true;
-        }
-
-        /// <summary>
-        /// Switch the panel to Apps
-        /// </summary>
-        private void ShowApps()
-        {
-            IsInApps = true;
-        }
-
-        /// <summary>
-        /// Builds the Apps list
-        /// </summary>
-        private void BuildAppList()
-        {
-            AppList.Clear();
-
-            var appListItemsSource = BackgroundDataService.InstalledApplications.GetAllItems().OrderBy(a => a.AppListSortKey).ToArray();
-            if (appListItemsSource.Length > 0)
-            {
-
-                var lastCategory = "";
-                var lastFolderName = "";
-                AppListFolder? lastFolder = null;
-
-                foreach (var sourceItem in appListItemsSource)
-                {
-                    if (lastCategory != sourceItem.AppListCategory)
-                    {
-                        //new category
-                        lastCategory = sourceItem.AppListCategory;
-                        var categoryItem = new AppListCategory(lastCategory);
-                        AppList.Add(categoryItem);
-                    }
-
-                    if (lastFolderName != sourceItem.AppListFolder)
-                    {
-                        lastFolderName = sourceItem.AppListFolder;
-                        lastFolder = lastFolderName != string.Empty ? new AppListFolder(lastFolderName) : null;
-                        if (lastFolder != null) AppList.Add(lastFolder);
-                    }
-
-                    var item = new AppListInstalledItem(sourceItem, lastFolder != null, a => a.LaunchInstalledApp(e =>
-                    {
-                        LogCantStartApp(sourceItem.ShellProperties.IsStoreApp ? sourceItem.AppUserModelId ?? "[Null] appID" : sourceItem.Executable ?? "[Null] file", e);
-                    }));
-
-                    lastFolder?.AddItem(item);
-                    AppList.Add(item);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Switch the panel to Pins
-        /// </summary>
-        private void ShowPins()
-        {
-            IsInPins = true;
-        }
-
-        /// <summary>
-        /// Process the key for app list
-        /// Parameter <paramref name="param"/> must be <see cref="Key"/> value
-        /// </summary>
-        /// <param name="param"><see cref="Key"/> pressed </param>
-        /// <exception cref="ArgumentException">When the <paramref name="param"/> is not <see cref="Key"/> object or is null, <see cref="ArgumentException"/> is thrown</exception>
-        private void AppListKey(object? param)
-        {
-            if (param is not KeyCommand.CommandParameters commandParameters)
-            {
-                throw new ArgumentException($"Command parameter must be {nameof(KeyCommand.CommandParameters)}", nameof(param));
-            }
-
-            var sender = commandParameters.Sender;
-            var key = commandParameters.Key;
-
-
-            if (key is >= Key.A and <= Key.Z)
-            {
-
-                var category = key.ToString();
-                var appListItem = AppList.FirstOrDefault(a => a is AppListCategory c && c.Title == category);
-                if (appListItem == null) return;
-
-                var categoryUiElement = WpfTools.FirstOrDefaultChild<MenuItem>(sender, i => i.DataContext == appListItem);
-                categoryUiElement?.BringIntoView();
-            }
-        }
-
-
-        /// <summary>
-        /// Builds the Start pins list
-        /// </summary>
-        private void BuildStartPinsList()
-        {
-            StartPinList.Clear();
-            if (!IsPinsEnabled) return;
-
-            var startPinList = StartPinnedApplications.ToArray();
-            var installedApplications = BackgroundDataService.InstalledApplications.GetAllItems().ToArray();
-            if (startPinList.Length > 0)
-            {
-
-                var lastFolderName = string.Empty;
-                AppListFolder? lastFolder = null;
-
-                foreach (var pinnedItem in startPinList)
-                {
-                    var sourceItem = installedApplications.FirstOrDefault(i => pinnedItem.AppId == i.AppUserModelId);
-                    if (sourceItem == null) continue;
-
-                    if (pinnedItem.PinnedAppType == PinnedAppInfo.PinnedAppTypeEnum.Package)
-                    {
-                        //update from installed application as it's not available when retrieved
-                        pinnedItem.Title = sourceItem.Name;
-                        pinnedItem.BitmapSource = sourceItem.IconSource;
-                    }
-
-                    if (lastFolderName != pinnedItem.StartFolder)
-                    {
-                        lastFolderName = pinnedItem.StartFolder;
-                        lastFolder = lastFolderName != string.Empty ? new AppListFolder(lastFolderName){IsExpanded = true} : null;
-                        if (lastFolder != null) StartPinList.Add(lastFolder);
-                    }
-                    
-
-                    var item = new AppListInstalledItem(sourceItem, lastFolder != null, a => a.LaunchInstalledApp(e =>
-                    {
-                        LogCantStartApp(sourceItem.ShellProperties.IsStoreApp ? sourceItem.AppUserModelId ?? "[Null] appID" : sourceItem.Executable ?? "[Null] file", e);
-                    }));
-
-                    lastFolder?.AddItem(item);
-                    StartPinList.Add(item);
-                }
-            }
         }
 
         /// <summary>
@@ -1165,46 +417,6 @@ namespace Zring.ViewModel
         }
 
         /// <summary>
-        /// Launch the app shortcut
-        /// Parameter <paramref name="param"/> must be <see cref="ShortcutType"/> value
-        /// </summary>
-        /// <param name="param"><see cref="Key"/> pressed </param>
-        /// <exception cref="ArgumentException">When the <paramref name="param"/> is not <see cref="ShortcutType"/> object or is null, <see cref="ArgumentException"/> is thrown</exception>
-        private void LaunchAppShortcut(object? param)
-        {
-            if (param is not ShortcutType shortcutType)
-            {
-                throw new ArgumentException($"Command parameter must be {nameof(ShortcutType)}", nameof(param));
-            }
-
-            switch (shortcutType)
-            {
-                case ShortcutType.Documents:
-                    Shell.Explore(ShellSpecialFolder.PERSONAL);
-                    break;
-                case ShortcutType.Pictures:
-                    Shell.Explore(ShellSpecialFolder.MYPICTURES);
-                    break;
-                case ShortcutType.Downloads:
-                    Shell.Explore("shell:Downloads");
-                    break;
-                case ShortcutType.Run:
-                    Shell.FileRun();
-                    break;
-                case ShortcutType.Console:
-                    Shell.ShellExecute("cmd");
-                    break;
-                case ShortcutType.DeviceAndPrinters:
-                    Shell.ShellExecute("control", "printers");
-                    break;
-                case ShortcutType.Settings:
-                    Shell.ShellExecute("ms-settings:home");
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-        /// <summary>
         /// Occurs when a property value changes
         /// </summary>
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -1217,41 +429,6 @@ namespace Zring.ViewModel
         public void OnPropertyChanged([CallerMemberName] string propertyName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        /// <summary>
-        /// Type of shortcut in app panel
-        /// </summary>
-        public enum ShortcutType
-        {
-            /// <summary>
-            /// Open Documents folder
-            /// </summary>
-            Documents,
-            /// <summary>
-            /// Open Pictures folder
-            /// </summary>
-            Pictures,
-            /// <summary>
-            /// Open downloads folder
-            /// </summary>
-            Downloads,
-            /// <summary>
-            /// Open Run dialog
-            /// </summary>
-            Run,
-            /// <summary>
-            /// Open command console
-            /// </summary>
-            Console,
-            /// <summary>
-            /// Open Device and Printers
-            /// </summary>
-            DeviceAndPrinters,
-            /// <summary>
-            /// Open Windows settings
-            /// </summary>
-            Settings
         }
     }
 }

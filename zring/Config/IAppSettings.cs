@@ -161,24 +161,9 @@ public interface IAppSettings
     bool AllowAppBarButtonReorder { get; }
 
     /// <summary>
-    /// Flag whether to show buttons ("pins") for applications pinned to the task bar when they have no window open
-    /// </summary>
-    bool ShowPinnedApps { get; }
-
-    /// <summary>
-    /// Flag whether to hide the apps having single window only and not being pinned
+    /// Flag whether to hide the apps having single window only
     /// </summary>
     bool HideSingleWindowApps { get; }
-
-    /// <summary>
-    /// Flag whether to allow the search functionality
-    /// </summary>
-    bool AllowSearch { get; }
-
-    /// <summary>
-    /// Maximum number of items in single category when presenting the search results
-    /// </summary>
-    int SearchListCategoryLimit { get; }
 
     /// <summary>
     /// Width of the menu popup

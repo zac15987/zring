@@ -2,11 +2,8 @@
   "Language": {
     "Translations": {
       "MenuPopupHidePopup": "Hide popup",
-      "MenuPopupSearch": "Search",
       "MenuPopupSettings": "Settings",
       "MenuPopupColors": "Colors",
-      "MenuPopupApps": "Applications",
-      "MenuPopupPins": "Pinned apps",
       "MenuPopupToggleDesktop": "Toggle desktop",
       "MenuPopupToggleTheme": "Toggle theme",
       "MenuPopupExit": "Exit app",
@@ -18,11 +15,6 @@
       "EdgeRight": "Right",
       "EdgeTop": "Top",
       "EdgeBottom": "Bottom",
-
-      "SearchCategoryWindows": "Windows",
-      "SearchCategoryPinnedApps": "Pinned applications",
-      "SearchCategoryInstalledApps": "Applications",
-      "SearchCategoryInstalledDocs": "Documents",
 
       "JumpListMenuCloseWindow": "Close window",
       "JumpListMenuCancel": "Cancel",

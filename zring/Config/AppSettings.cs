@@ -65,11 +65,6 @@ namespace Zring.Config
         public const string FF_EnableRunInfoFromWindowsPrefetch = "EnableRunInfoFromWindowsPrefetch";
 
         /// <summary>
-        /// Name of the Feature Flag for enabling the color panel in menu popup
-        /// </summary>
-        // ReSharper disable once InconsistentNaming
-        public const string FF_EnableStartMenuPins = "EnableStartMenuPins";   
-        /// <summary>
         /// Name of the Feature Flag for enabling the window's context menu on the thumbnail
         /// </summary>
         // ReSharper disable once InconsistentNaming
@@ -264,24 +259,9 @@ namespace Zring.Config
         public bool AllowAppBarButtonReorder { get; set; } = true;
 
         /// <summary>
-        /// Flag whether to hide the apps having single window only and not being pinned (default is false)
+        /// Flag whether to hide the apps having single window only (default is false)
         /// </summary>
         public bool HideSingleWindowApps { get; set; } = false;
-
-        /// <summary>
-        /// Flag whether to show buttons ("pins") for applications pinned to the task bar when they have no window open (default is false)
-        /// </summary>
-        public bool ShowPinnedApps { get; set; } = false;
-
-        /// <summary>
-        /// Flag whether to allow the search functionality (default is true)
-        /// </summary>
-        public bool AllowSearch { get; set; } = true;
-
-        /// <summary>
-        /// Maximum number of items in single category when presenting the search results (default is 5)
-        /// </summary>
-        public int SearchListCategoryLimit { get; set; } = 5;
 
         /// <summary>
         /// Width of the menu popup (default is 400)

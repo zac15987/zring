@@ -6,11 +6,8 @@ namespace Zring.Config;
 public enum TranslationKeys
 {
     MenuPopupHidePopup,
-    MenuPopupSearch,
     MenuPopupSettings,
     MenuPopupColors,
-    MenuPopupApps,
-    MenuPopupPins,
     MenuPopupToggleDesktop,
     MenuPopupToggleTheme,
     MenuPopupExit,
@@ -22,11 +19,6 @@ public enum TranslationKeys
     EdgeRight,
     EdgeTop,
     EdgeBottom,
-
-    SearchCategoryWindows,
-    SearchCategoryPinnedApps,
-    SearchCategoryInstalledApps,
-    SearchCategoryInstalledDocs,
 
     JumpListMenuCloseWindow,
     JumpListMenuCancel,

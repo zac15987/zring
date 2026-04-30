@@ -6,7 +6,6 @@ using Zring.Config;
 using Zring.Views;
 using Zring.Win32.Services.Audio;
 using Zring.Win32.Services.JumpLists;
-using Zring.Win32.Services.Pins;
 using Zring.Win32.Services.Startup;
 using Wpf.Ui;
 
@@ -46,11 +45,6 @@ namespace Zring.ViewModel
         private readonly ILanguageService designTimeLanguageService;
 
         /// <summary>
-        /// Pins service used in design time
-        /// </summary>
-        private readonly IPinsService designTimePinsService;
-
-        /// <summary>
         /// CTOR
         /// </summary>
         public ViewModelLocator()
@@ -61,14 +55,13 @@ namespace Zring.ViewModel
             using var loggerFactory = LoggerFactory.Create(loggingBuilder => loggingBuilder.SetMinimumLevel(LogLevel.Trace).AddDebug().AddConsole());
             designTimeLogger = loggerFactory.CreateLogger("DesignTime");
             designTimeLanguageService = new LanguageService(null);
-            designTimePinsService = new PinsService(designTimeAppSettings, designTimeLogger, new ThemeService());
-            designTimeBackgroundDataService = new BackgroundDataService(designTimeAppSettings, designTimeLogger, designTimePinsService);
+            designTimeBackgroundDataService = new BackgroundDataService(designTimeAppSettings, designTimeLogger);
         }
 
         /// <summary>
         /// Gets the <see cref="MainViewModel"/> for <see cref="MainWindow"/>
         /// When running in runtime, it's retrieved from DI.
-        /// When running in design time a new instance of <see cref="MainViewModel"/> is used with default <see cref="AppSettings"/> and dummy logger and dummy services 
+        /// When running in design time a new instance of <see cref="MainViewModel"/> is used with default <see cref="AppSettings"/> and dummy logger and dummy services
         /// </summary>
         /// <remarks>No need to mock whole model/class for design time, just use the default settings and design time logger</remarks>
         public MainViewModel MainViewModel => IsDesignTime ?
@@ -77,8 +70,7 @@ namespace Zring.ViewModel
                     designTimeLogger,
                     new DummyJumpListService(),
                     designTimeLanguageService,
-                    designTimeBackgroundDataService,
-                    designTimePinsService) :
+                    designTimeBackgroundDataService) :
                 App.ServiceProvider.GetRequiredService<MainViewModel>();
 
         /// <summary>
@@ -94,8 +86,7 @@ namespace Zring.ViewModel
                 designTimeLogger,
                 new DummyStartupService(),
                 designTimeLanguageService,
-                designTimeBackgroundDataService,
-                designTimePinsService) :
+                designTimeBackgroundDataService) :
             App.ServiceProvider.GetRequiredService<MenuPopupViewModel>();
 
         /// <summary>
