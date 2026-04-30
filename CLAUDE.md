@@ -155,3 +155,19 @@ Translations live in `language.{code}.json` with a flat `Language.Translations` 
 - **Only one appbar can register per edge.** Tests fail-fast if `zring.exe` is already running, and the project xUnit collection is non-parallel.
 
 Existing landmark AutomationIds: `Zring.MainWindow`, `Zring.MenuToggle`, `Zring.AudioControl`, `Zring.AppFilter`, `Zring.Clock`, plus per-app `AppButton` instances bound to `ButtonInfo.Group`.
+
+### When to run smoke automatically
+
+Run `dotnet test zring.Tests.UI` after edits to:
+
+- Startup/shutdown skeleton — `App.xaml.cs`, `AppBar/AppBarWindow.cs`, `MainWindow.xaml(.cs)`, `Win32/Services/WndAndApp.cs::HideFromTaskbar`.
+- A landmark `AutomationProperties.AutomationId` (the IDs above) or the container holding one.
+- The test project itself (`zring.Tests.UI/`).
+
+Skip for: popup / interaction XAML, themes / i18n, other `Win32/` interop, `*.logging.cs`, `MainViewModel` enumeration logic (the test freezes the timer), `appsettings.json` values, and docs — these are out of test scope.
+
+Always:
+
+- If `zring.exe` is already running, skip and tell the user. The running instance locks `zring.ico` (build fails) and the test's fail-fast would reject it anyway.
+- If `dotnet build` fails, don't run the test — fix the build first.
+- At most one smoke run per conversation — it's a regression gate, not a watch loop.
