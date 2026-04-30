@@ -22,7 +22,7 @@ dotnet run --project zring
 dotnet publish zring -c Release -r win-x64 --self-contained
 ```
 
-There is no test project and no linter configured. MSBuild in Visual Studio 2022 is the author's primary build path.
+There is one UI test project (`zring.Tests.UI`, FlaUI + xUnit) and no linter configured. MSBuild in Visual Studio 2022 is the author's primary build path.
 
 ### Runtime configuration
 
@@ -144,3 +144,14 @@ WPF-UI (`Wpf.Ui`, package `WPF-UI` v4.2.0) provides theming. `StartupTheme` pick
 Custom `ui:Button` `ControlTemplate`s in this project (CloseButtonStyle, NavButton, AppShortcutButtonStyle, AudioButtonStyle, PopupAudioButtonStyle) use v4's `ContentPresenter Content="{TemplateBinding Icon}"` + `TextElement.Foreground` inheritance pattern rather than the old v2 `SymbolIcon Symbol="{TemplateBinding Icon}"` binding — `ui:Button.Icon` is now `IconElement`, not `SymbolRegular`. Direct button usages write `Icon="{ui:SymbolIcon Xxx24}"` instead of a bare enum string. `AppButton` also explicitly overrides `VerticalAlignment="Stretch"` because v4's default is `Center` and would otherwise leave visible vertical gaps in the cell.
 
 Translations live in `language.{code}.json` with a flat `Language.Translations` dictionary of known keys (see `Config/TranslationKeys.cs`). English is the implicit baseline; any missing key falls back through the chain.
+
+## UI Automation tests
+
+`zring.Tests.UI` (FlaUI 5 + xUnit) drives the built `zring.exe` via UI Automation for smoke / integration tests. The test project's `README.md` is the canonical reference for the WPF + UIA + FlaUI gotchas we hit; read it before adding tests or tagging more elements with `AutomationProperties.AutomationId`. Quick rules:
+
+- **Panels and Decorators have no AutomationPeer.** `WrapPanel`, `Grid`, `Canvas`, `StackPanel`, `Border` are invisible to UIA — `AutomationProperties.AutomationId` set on them is silently useless. Tag a `Control`-derived descendant (Button, ToggleButton, UserControl) instead.
+- **`MainWindow` is `WS_EX_TOOLWINDOW`.** `Process.MainWindowHandle` is `0`; use `Application.GetAllTopLevelWindows(automation)` filtered by AutomationId, not `Application.GetMainWindow()`.
+- **`app.Close()` races `host.StopAsync(5s)`** and force-kills, skipping `ABM_REMOVE` — leaves the desktop work area shrunk. Tests drive `Process.CloseMainWindow()` + `WaitForExit(15s)` directly.
+- **Only one appbar can register per edge.** Tests fail-fast if `zring.exe` is already running, and the project xUnit collection is non-parallel.
+
+Existing landmark AutomationIds: `Zring.MainWindow`, `Zring.MenuToggle`, `Zring.AudioControl`, `Zring.AppFilter`, `Zring.Clock`, plus per-app `AppButton` instances bound to `ButtonInfo.Group`.

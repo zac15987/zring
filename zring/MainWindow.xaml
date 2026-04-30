@@ -256,7 +256,7 @@
 
 
         <!-- Main panel (window/pin buttons) -->
-        <WrapPanel Name="MainPanel" AutomationProperties.AutomationId="Zring.MainPanel">
+        <WrapPanel Name="MainPanel">
             <WrapPanel.Style>
                 <Style TargetType="{x:Type WrapPanel}">
                     <Style.Triggers>
