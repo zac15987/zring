@@ -13,7 +13,6 @@
                     <viewModel:ViewModelLocator x:Key="ViewModelLocator" />
                     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
-                    <system:String x:Key="StrMenuPopupHidePopup">Hide popup</system:String>
                     <system:String x:Key="StrMenuPopupSettings">Settings</system:String>
                     <system:String x:Key="StrMenuPopupColors">Colors</system:String>
                     <system:String x:Key="StrMenuPopupToggleDesktop">Toggle desktop</system:String>

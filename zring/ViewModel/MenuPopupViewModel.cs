@@ -253,11 +253,6 @@ namespace Zring.ViewModel
         public ICommand ToggleThemeCommand { get; }
 
         /// <summary>
-        /// Command requesting to hide menu popup
-        /// </summary>
-        public ICommand HideMenuPopupCommand { get; }
-
-        /// <summary>
         /// Command requesting to toggle Run on Windows startup - set/remove the startup link
         /// </summary>
         public ICommand ToggleRunOnStartupCommand { get; }
@@ -291,7 +286,6 @@ namespace Zring.ViewModel
             ToggleDesktopCommand = new RelayCommand(ToggleDesktop);
             ToggleThemeCommand = new RelayCommand(ToggleTheme);
             ShowColorsCommand = new RelayCommand(ShowColors);
-            HideMenuPopupCommand = new RelayCommand(HideMenuPopup);
             RefreshWindowCollectionCommand = new RelayCommand(Main.RefreshAllWindowsCollection);
 
             runOnWinStartupSet = startupService.HasAppStartupLink();
@@ -405,15 +399,6 @@ namespace Zring.ViewModel
         private void ToggleDesktop()
         {
             Shell.ToggleDesktop();
-        }
-
-        /// <summary>
-        ///  Close the menu popup
-        /// </summary>
-        private void HideMenuPopup()
-        {
-            IsInMenuPopup = false;
-            Main.IsInMenuPopup = false;
         }
 
         /// <summary>

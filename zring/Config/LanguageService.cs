@@ -45,7 +45,6 @@ namespace Zring.Config
         /// </summary>
         private void InitDefaultTranslations()
         {
-            SetTranslation(TranslationKeys.MenuPopupHidePopup, "Hide popup");
             SetTranslation(TranslationKeys.MenuPopupSettings, "Settings");
             SetTranslation(TranslationKeys.MenuPopupColors, "Colors");
             SetTranslation(TranslationKeys.MenuPopupToggleDesktop, "Toggle desktop");

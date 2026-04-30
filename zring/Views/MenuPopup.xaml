@@ -105,8 +105,6 @@
                     <Grid.RowDefinitions>
                         <!-- hamburger -->
                         <RowDefinition Height="Auto" />
-                        <!-- hide popup -->
-                        <RowDefinition Height="Auto" />
                         <!-- spacer -->
                         <RowDefinition Height="*" MinHeight="80" />
                         <!-- toggle desktop -->
@@ -155,26 +153,22 @@
                             </Style>
                         </ui:Button.Style>
                     </ui:Button>
-                    <ui:Button Grid.Column="0" Grid.Row="1" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon ShareCloseTray24}" Content="{DynamicResource StrMenuPopupHidePopup}"
-                               wpfExt:IsActiveBehavior.ShowIndicator="False"
-                               Command="{Binding HideMenuPopupCommand}"/>
-
-                    <ui:Button Grid.Column="0" Grid.Row="3" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon DesktopCursor24}" Content="{DynamicResource StrMenuPopupToggleDesktop}"
+                    <ui:Button Grid.Column="0" Grid.Row="2" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon DesktopCursor24}" Content="{DynamicResource StrMenuPopupToggleDesktop}"
                                Command="{Binding ToggleDesktopCommand}"/>
 
-                    <ui:Button Grid.Column="0" Grid.Row="4" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon Settings24}" Content="{DynamicResource StrMenuPopupSettings}"
+                    <ui:Button Grid.Column="0" Grid.Row="3" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon Settings24}" Content="{DynamicResource StrMenuPopupSettings}"
                                wpfExt:IsActiveBehavior.IsActive="{Binding IsInSettings}"
                                Command="{Binding ShowSettingsCommand}"/>
 
-                    <ui:Button Grid.Column="0" Grid.Row="5" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon Color24}" Content="{DynamicResource StrMenuPopupColors}"
+                    <ui:Button Grid.Column="0" Grid.Row="4" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon Color24}" Content="{DynamicResource StrMenuPopupColors}"
                                wpfExt:IsActiveBehavior.IsActive="{Binding IsInColors}"
                                Command="{Binding ShowColorsCommand}"
                                Visibility="{Binding IsColorsEnabled, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
-                    <ui:Button Grid.Column="0" Grid.Row="6" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon DarkTheme24}" Content="{DynamicResource StrMenuPopupToggleTheme}"
+                    <ui:Button Grid.Column="0" Grid.Row="5" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon DarkTheme24}" Content="{DynamicResource StrMenuPopupToggleTheme}"
                                Command="{Binding ToggleThemeCommand}" />
 
-                    <ui:Button Grid.Column="0" Grid.Row="7" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon Power24}" Content="{DynamicResource StrMenuPopupExit}"
+                    <ui:Button Grid.Column="0" Grid.Row="6" Style="{DynamicResource NavButton}" Icon="{ui:SymbolIcon Power24}" Content="{DynamicResource StrMenuPopupExit}"
                                Command="{Binding CloseAppBarCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type appBar:AppBarWindow}}}"/>
 
                 </Grid>

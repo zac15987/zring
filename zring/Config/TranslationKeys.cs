@@ -5,7 +5,6 @@ namespace Zring.Config;
 /// </summary>
 public enum TranslationKeys
 {
-    MenuPopupHidePopup,
     MenuPopupSettings,
     MenuPopupColors,
     MenuPopupToggleDesktop,
