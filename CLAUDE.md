@@ -93,6 +93,8 @@ When something "doesn't group right," this pipeline is almost always the cause.
 
 Selection is persisted to `appsettings.user.json` as `UserSettings.FilteredAppKeys` (lowercase AppId / executable / fallback, matching `ButtonInfo.Group`). `OnItemToggled` updates the list, calls `UserSettings.Save()`, and kicks `Main.RefreshAllWindowsCollection(false)` so the appbar updates within the next tick. Checked state for closed apps is preserved — re-launching an app automatically applies the existing filter.
 
+The popup uses `StaysOpen="True"` with manual outside-click and window-deactivation dismissal in `AppFilterControl.xaml.cs` (`OnHostPreviewMouseDown` / `OnHostDeactivated`). `StaysOpen="False"` looks simpler but causes a close-then-reopen race when the user clicks the toggle that opened the popup: WPF's mouse-capture path closes the popup *before* the toggle's click handler runs, so the toggle then flips `IsChecked` back to true and re-opens it. Don't revert to `StaysOpen="False"` without restoring an equivalent manual flow.
+
 ### Background data service
 
 `BackgroundDataService` enumerates installed applications off the UI thread at startup, populating an AppId/executable lookup that powers AppId resolution and the AppFilter display-name fallback. The data is one-shot at startup (and on hard refresh); UI shows a "busy" cursor via `MainWindow.IsBackgroundRefreshing` during this period. The pipeline also optionally reads `Windows\Prefetch` for run count / last-launch data (gated by `FeatureFlags.EnableRunInfoFromWindowsPrefetch`, default `false` because `C:\Windows\Prefetch` is ACL'd to Administrators and ordinary users get `UnauthorizedAccessException` per-app at startup, flooding the log).
@@ -155,10 +157,10 @@ Translations live in `language.{code}.json` with a flat `Language.Translations` 
 
 - **Panels and Decorators have no AutomationPeer.** `WrapPanel`, `Grid`, `Canvas`, `StackPanel`, `Border` are invisible to UIA — `AutomationProperties.AutomationId` set on them is silently useless. Tag a `Control`-derived descendant (Button, ToggleButton, UserControl) instead.
 - **`MainWindow` is `WS_EX_TOOLWINDOW`.** `Process.MainWindowHandle` is `0`; use `Application.GetAllTopLevelWindows(automation)` filtered by AutomationId, not `Application.GetMainWindow()`.
-- **`app.Close()` races `host.StopAsync(5s)`** and force-kills, skipping `ABM_REMOVE` — leaves the desktop work area shrunk. Tests drive `Process.CloseMainWindow()` + `WaitForExit(15s)` directly.
+- **`app.Close()` races `host.StopAsync(5s)`** and force-kills, skipping `ABM_REMOVE` — leaves the desktop work area shrunk. `Process.CloseMainWindow` is also a no-op here: with `WS_EX_TOOLWINDOW`, `Process.MainWindowHandle` is 0 and `CloseMainWindow` returns `false` without sending anything. Tests send `WM_CLOSE` directly via `User32.SendMessage` to the UIA-discovered `NativeWindowHandle`, so `App.OnExit` runs and emits `ABM_REMOVE`.
 - **Only one appbar can register per edge.** Tests fail-fast if `zring.exe` is already running, and the project xUnit collection is non-parallel.
 
-Existing landmark AutomationIds: `Zring.MainWindow`, `Zring.MenuToggle`, `Zring.AudioControl`, `Zring.AppFilter`, `Zring.Clock`, plus per-app `AppButton` instances bound to `ButtonInfo.Group`.
+Existing landmark AutomationIds: `Zring.MainWindow`, `Zring.MenuToggle`, `Zring.AudioControl`, `Zring.AppFilter`, `Zring.AppFilterToggle`, `Zring.Clock`, plus per-app `AppButton` instances bound to `ButtonInfo.Group`.
 
 ### When to run smoke automatically
 
@@ -174,4 +176,3 @@ Always:
 
 - If `zring.exe` is already running, skip and tell the user. The running instance locks `zring.ico` (build fails) and the test's fail-fast would reject it anyway.
 - If `dotnet build` fails, don't run the test — fix the build first.
-- At most one smoke run per conversation — it's a regression gate, not a watch loop.
