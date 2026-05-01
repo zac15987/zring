@@ -310,6 +310,10 @@ namespace Zring.ViewModel
 
             //start app windows refresh timer
             timer.Start();
+
+            //Populate buttons immediately so the appbar isn't empty for the first interval.
+            //Without this, the user sees an empty appbar until the timer's first Tick.
+            RefreshAllWindowsCollection(false);
         }
 
 
